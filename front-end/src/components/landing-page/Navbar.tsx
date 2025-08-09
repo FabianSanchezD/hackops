@@ -1,12 +1,23 @@
 "use client";
 import React, { useState } from "react";
+import Image from "next/image";
 
 const Navbar: React.FC = () => {
 	const [open, setOpen] = useState(false);
 	return (
 		<nav className="fixed top-0 left-0 w-full z-50 bg-[#0a174e]/90 backdrop-blur border-b border-blue-900 text-white">
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-				<a href="#" className="font-bold text-2xl tracking-tight">HackOps</a>
+				<a href="#" className="flex items-center gap-1 font-bold text-2xl tracking-tight">
+					<Image
+						src="/icons/hackops_logo.png"
+						alt="HackOps Logo"
+						width={32}
+						height={32}
+						className="object-contain"
+						priority
+					/>
+					<span className="leading-none m-0">HackOps</span>
+				</a>
 				<button
 					className="md:hidden p-2 rounded hover:bg-white/10"
 					aria-label="Toggle menu"

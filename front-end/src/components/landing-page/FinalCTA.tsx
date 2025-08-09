@@ -23,7 +23,7 @@ const FinalCTA: React.FC = () => {
 				/>
 				<button
 					type="submit"
-					className="bg-gradient-to-r from-purple-500 to-blue-600 text-white font-semibold px-8 py-3 rounded-full shadow hover:opacity-90 transition"
+					className="bg-gradient-to-r from-blue-400 to-blue-600 text-white font-semibold px-8 py-3 rounded-full shadow hover:opacity-90 transition"
 				>
 					Get Early Access
 				</button>

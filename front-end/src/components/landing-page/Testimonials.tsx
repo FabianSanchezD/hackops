@@ -1,9 +1,9 @@
 import React from "react";
 
 const testimonials = [
-	{ quote: "HackOps made our hackathon seamless. The AI agents handled everything from outreach to judging!", name: "Alex R.", org: "TechFest Organizer" },
-	{ quote: "I saved days of work. The team management and content tools are a game changer.", name: "Priya S.", org: "Startup Weekend Host" },
-	{ quote: "Our event grew 2x thanks to HackOps' automated community features.", name: "Jordan M.", org: "CodeSprint Director" },
+	{ quote: "HackOps made our hackathon seamless. The AI agents handled everything!", name: "Fabian S.", org: "Amazing Hackathon" },
+	{ quote: "I saved days of work. The team management and content tools are a game changer.", name: "Andres P.", org: "Cool Hackathon" },
+	{ quote: "Our event grew 2x thanks to HackOps' automated community features.", name: "John D.", org: "Extraordinary Hackathon" },
 ];
 
 const Testimonials: React.FC = () => (
