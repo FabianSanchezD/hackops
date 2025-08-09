@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { ChevronDown, Settings, Plus, Settings2 } from "lucide-react";
+import { ChevronDown, Settings, Plus, Settings2, LogOut } from "lucide-react";
 
 export default function Navbar() {
   return (
@@ -57,6 +57,11 @@ export default function Navbar() {
               <DropdownMenuItem className="hover:bg-blue-50 focus:bg-blue-50">
                 <Settings2 size={16} className="mr-2 text-[#1e40af]" />
                 Account Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="hover:bg-red-50 focus:bg-red-50 text-red-600 focus:text-red-700">
+                <LogOut size={16} className="mr-2" />
+                Sign Out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
