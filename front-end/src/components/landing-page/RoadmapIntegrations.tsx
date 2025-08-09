@@ -18,6 +18,8 @@ const RoadmapIntegrations: React.FC = () => (
 				</div>
 			))}
 		</div>
+		<div className="text-center text-blue-200 mt-8">- SendGrid</div>
+		<div className="text-center text-blue-200 mt-8">- SendGrid</div>
 		<div className="text-center text-blue-200 mt-8">More integrations coming soon…</div>
 	</section>
 );
