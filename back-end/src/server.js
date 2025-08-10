@@ -1,4 +1,7 @@
 import express from 'express';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import outreachRoutes from './routes/outreach.routes.js';
 import teamManagementRoutes from './routes/teamManagement.routes.js';
 import speakerJuryManagementRoutes from './routes/speakerJuryManagement.routes.js';
@@ -10,12 +13,31 @@ import trackingRoutes from './routes/tracking.routes.js';
 import todosAgendaRoutes from './routes/todosAgenda.routes.js';
 import swaggerUi from 'swagger-ui-express';
 import openapiSpec from './openapi.js';
+import cors from 'cors';
+
+// Get the directory name for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from the main project directory (two levels up from src)
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 const app = express();
 
 // Middleware
+app.use(cors({
+    // TODO: add vercel front-end here (when deployed)
+    origin: [
+        'http://localhost:3000',
+        'https://localhost:3000',
+    ],
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve generated media files (images) as static assets
+app.use('/media', express.static(path.join(__dirname, 'media')));
 
 // Routes
 app.use('/outreach', outreachRoutes);
