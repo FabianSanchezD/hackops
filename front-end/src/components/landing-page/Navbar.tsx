@@ -9,7 +9,7 @@ const Navbar: React.FC = () => {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
 				<a href="#" className="flex items-center gap-1 font-bold text-2xl tracking-tight">
 					<Image
-						src="/icons/hackops_logo.png"
+						src="/icons/hackops_logo.svg"
 						alt="HackOps Logo"
 						width={32}
 						height={32}
