@@ -43,7 +43,7 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Image
-              src="/icons/hackops_logo.svg"
+              src="/icons/HackOps_Logo.svg"
               alt="HackOps Logo"
               width={40}
               height={40}
