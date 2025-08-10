@@ -177,6 +177,122 @@ const openapiSpec = {
     },
     '/growth/announcements': { post: { tags: ['Growth'], summary: 'Create announcement', responses: { '201': { description: 'Created' } } } },
     '/track-creation/health': { get: { tags: ['Track Creation'], summary: 'Track Creation health', responses: { '200': { description: 'OK' } } } },
+    '/track-creation/ai-ideas': {
+      post: {
+        tags: ['Track Creation'],
+        summary: 'Generate AI ideas for tracks and challenges',
+        description: 'Use OpenAI to propose tracks and challenge ideas for a hackathon.',
+        requestBody: {
+          required: false,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  theme: { type: 'string', example: 'AI for Social Good' },
+                  audience: { type: 'string', example: 'students and early-career developers' },
+                  durationDays: { type: 'integer', example: 2 },
+                  tracksCount: { type: 'integer', example: 4 },
+                  challengesPerTrack: { type: 'integer', example: 3 },
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          '200': {
+            description: 'Ideas generated successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean' },
+                    ideas: {
+                      type: 'object',
+                      properties: {
+                        tracks: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              name: { type: 'string' },
+                              objective: { type: 'string' },
+                              challenges: {
+                                type: 'array',
+                                items: {
+                                  type: 'object',
+                                  properties: {
+                                    title: { type: 'string' },
+                                    description: { type: 'string' }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    meta: { type: 'object' }
+                  }
+                }
+              }
+            }
+          },
+          '500': { description: 'Failed to generate ideas' }
+        }
+      }
+    },
+    '/track-creation/ai-ideas/refine': {
+      post: {
+        tags: ['Track Creation'],
+        summary: 'Refine previously generated ideas',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['ideas'],
+                properties: {
+                  ideas: {
+                    type: 'object',
+                    properties: {
+                      tracks: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          properties: {
+                            name: { type: 'string' },
+                            objective: { type: 'string' },
+                            challenges: {
+                              type: 'array',
+                              items: {
+                                type: 'object',
+                                properties: {
+                                  title: { type: 'string' },
+                                  description: { type: 'string' }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  instruction: { type: 'string', example: 'Make challenges more concrete and reduce overlap.' }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          '200': { description: 'Refined successfully' },
+          '400': { description: 'ideas missing' },
+          '500': { description: 'Failed to refine' }
+        }
+      }
+    },
     '/track-creation/tracks': { post: { tags: ['Track Creation'], summary: 'Create track', responses: { '201': { description: 'Created' } } } },
     '/live-support/health': { get: { tags: ['Live Support'], summary: 'Live Support health', responses: { '200': { description: 'OK' } } } },
     '/live-support/tickets': { post: { tags: ['Live Support'], summary: 'Create support ticket', responses: { '201': { description: 'Created' } } } },
