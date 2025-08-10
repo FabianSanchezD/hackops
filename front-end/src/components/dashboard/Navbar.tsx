@@ -68,7 +68,7 @@ export default function Navbar() {
     <>
       {/* Red overlay for unavailable feature */}
       {showUnavailable && (
-        <div className="fixed inset-0 bg-red-500/20 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in-0 duration-250">
+        <div className="fixed inset-0 bg-red-500/20 backdrop-blur-sm z-[9999] flex items-center justify-center animate-in fade-in-0 duration-250">
           <div className="bg-white rounded-xl p-6 shadow-2xl border border-red-200 max-w-sm mx-4 animate-in zoom-in-95 duration-300">
             <div className="text-center">
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
