@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Card, CardContent } from "../ui/card";
 import Button from "../ui/button";
+import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,9 +18,9 @@ export default function Navbar() {
     <div className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="mx-auto max-w-7xl h-16 px-4 flex items-center justify-between">
         {/* Left: HackOps */}
-        <div className="flex items-center gap-2">
+        <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
           <div className="text-2xl font-bold text-[#1e40af]">HackOps</div>
-        </div>
+        </Link>
 
         {/* Center: Hackathon dropdown */}
         <DropdownMenu>
