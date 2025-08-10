@@ -52,6 +52,8 @@ export default function LiveSupportPage() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [authUrl, setAuthUrl] = useState<string | null>(null);
+    const [isConnected, setIsConnected] = useState<boolean | null>(null);
+    const [isDisconnecting, setIsDisconnecting] = useState(false);
 
     const API_URL = useMemo(() => process.env.NEXT_PUBLIC_API_URL, []);
 
@@ -68,7 +70,7 @@ export default function LiveSupportPage() {
         if (!ensureApi()) return;
         setIsLoading(true);
         try {
-            const response = await fetch(`${API_URL}/live-support/meetings`, {
+            const response = await fetch(`${API_URL}/live-support/meetings?includePastHours=24&maxResults=50&hackopsOnly=true`, {
                 credentials: 'include'
             });
             const data = await response.json();
@@ -77,15 +79,19 @@ export default function LiveSupportPage() {
                 setAuthUrl(data.authUrl);
                 setError('Google Calendar not connected. Please connect to continue.');
                 setMeetings([]);
+                setIsConnected(false);
                 return;
             }
 
             if (!response.ok) throw new Error(data.error || data.details || 'Failed to fetch meetings');
             setMeetings(data.meetings || []);
             setError(null);
+            setAuthUrl(null);
+            setIsConnected(true);
         } catch (error: any) {
             console.error('Error fetching meetings:', error);
             setError(error.message || 'Failed to fetch meetings');
+            // Leave isConnected as-is on generic errors
         } finally {
             setIsLoading(false);
         }
@@ -121,6 +127,7 @@ export default function LiveSupportPage() {
             // Handle not connected case
             if (response.status === 401 && data?.authUrl) {
                 setAuthUrl(data.authUrl);
+                setIsConnected(false);
                 throw new Error('Google Calendar not connected. Please connect to continue.');
             }
 
@@ -159,6 +166,7 @@ export default function LiveSupportPage() {
                 const data = await response.json();
                 if (response.status === 401 && data?.authUrl) {
                     setAuthUrl(data.authUrl);
+                    setIsConnected(false);
                     throw new Error('Google Calendar not connected. Please connect to continue.');
                 }
                 throw new Error(data.error || data.details || 'Failed to delete meeting');
@@ -192,6 +200,31 @@ export default function LiveSupportPage() {
 
     const launchAuth = () => {
         if (authUrl) window.open(authUrl, '_blank', 'noopener,noreferrer');
+    };
+
+    const disconnectGoogle = async () => {
+        if (!ensureApi()) return;
+        setIsDisconnecting(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            const response = await fetch(`${API_URL}/live-support/disconnect`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || data.details || 'Failed to disconnect');
+            // Reset local state and expose fresh authUrl
+            setMeetings([]);
+            setAuthUrl(data.authUrl || null);
+            setIsConnected(false);
+            setSuccess('Disconnected from Google Calendar');
+        } catch (error: any) {
+            console.error('Error disconnecting:', error);
+            setError(error.message || 'Failed to disconnect');
+        } finally {
+            setIsDisconnecting(false);
+        }
     };
 
     return (
@@ -313,18 +346,34 @@ export default function LiveSupportPage() {
                         <div className="bg-white/50 border border-neutral-200 rounded-xl p-6 shadow-lg">
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-xl font-semibold text-[#0a174e]">Upcoming Meetings</h2>
-                                <Button
-                                    onClick={fetchMeetings}
-                                    disabled={isLoading}
-                                    variant="secondary"
-                                    className="px-4 py-2"
-                                >
-                                    {isLoading ? (
-                                        <ThreeDotsLoader text="Loading" key="loading" />
-                                    ) : (
-                                        'Refresh'
+                                <div className="flex gap-2">
+                                    <Button
+                                        onClick={fetchMeetings}
+                                        disabled={isLoading}
+                                        variant="secondary"
+                                        className="px-4 py-2"
+                                    >
+                                        {isLoading ? (
+                                            <ThreeDotsLoader text="Loading" key="loading" />
+                                        ) : (
+                                            'Refresh'
+                                        )}
+                                    </Button>
+                                    {isConnected === true && (
+                                        <Button
+                                            onClick={disconnectGoogle}
+                                            disabled={isDisconnecting}
+                                            variant="secondary"
+                                            className="px-4 py-2 text-red-600 hover:bg-red-50"
+                                        >
+                                            {isDisconnecting ? (
+                                                <ThreeDotsLoader text="Signing out" key="disconnecting" />
+                                            ) : (
+                                                'Sign out of Google'
+                                            )}
+                                        </Button>
                                     )}
-                                </Button>
+                                </div>
                             </div>
 
                             <div className="space-y-4 max-h-96 overflow-y-auto">
@@ -335,6 +384,8 @@ export default function LiveSupportPage() {
                                                 <p className="mb-3">Google Calendar not connected.</p>
                                                 <Button onClick={launchAuth}>Connect Google Calendar</Button>
                                             </div>
+                                        ) : isConnected === true ? (
+                                            <p>No upcoming meetings.</p>
                                         ) : (
                                             'No upcoming meetings found'
                                         )}

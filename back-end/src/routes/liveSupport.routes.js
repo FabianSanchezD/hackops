@@ -123,7 +123,7 @@ router.post('/create-meeting', ensureAuth, async (req, res) => {
 
         const event = {
             summary: title,
-            description: description || 'Live support session created via HackOps',
+            description: description ? `${description}\n\n#HackOps` : 'Live support session created via HackOps\n\n#HackOps',
             start: {
                 dateTime: new Date(startTime).toISOString(),
                 timeZone: 'UTC',
@@ -140,6 +140,14 @@ router.post('/create-meeting', ensureAuth, async (req, res) => {
                         type: 'hangoutsMeet'
                     }
                 }
+            },
+            // Tag events so we can identify them later
+            extendedProperties: {
+                private: { hackops: 'true', app: 'hackops' }
+            },
+            source: {
+                title: 'HackOps',
+                url: 'https://hackops.app'
             },
             reminders: {
                 useDefault: false,
@@ -185,17 +193,49 @@ router.post('/create-meeting', ensureAuth, async (req, res) => {
 // Get upcoming meetings
 router.get('/meetings', ensureAuth, async (req, res) => {
     try {
+        // Optional filters: includePastHours (default 24), maxResults (default 50), q (text search)
+        const includePastHoursRaw = req.query.includePastHours;
+        const maxResultsRaw = req.query.maxResults;
+        const q = typeof req.query.q === 'string' ? req.query.q : undefined;
+    const hackopsOnlyParam = req.query.hackopsOnly;
+    const hackopsOnly = hackopsOnlyParam === undefined ? true : String(hackopsOnlyParam).toLowerCase() !== 'false';
+
+        let includePastHours = Number(includePastHoursRaw);
+        if (!Number.isFinite(includePastHours) || includePastHours < 0 || includePastHours > 24 * 30) {
+            includePastHours = 24; // default: show last 24h + upcoming
+        }
+
+        let maxResults = parseInt(String(maxResultsRaw || '50'), 10);
+        if (!Number.isFinite(maxResults) || maxResults <= 0) maxResults = 50;
+        if (maxResults > 250) maxResults = 250; // API limit safety
+
+        const timeMin = new Date(Date.now() - includePastHours * 60 * 60 * 1000).toISOString();
+
         const response = await calendar.events.list({
             auth: oauth2Client,
             calendarId: 'primary',
-            timeMin: new Date().toISOString(),
-            maxResults: 10,
+            timeMin,
+            maxResults,
             singleEvents: true,
             orderBy: 'startTime',
-            // Do not filter by summary to ensure all upcoming meetings are shown
+            q,
         });
 
-        const meetings = response.data.items?.map(event => ({
+        const items = response.data.items || [];
+        const filtered = hackopsOnly
+            ? items.filter(event => {
+                const ext = event.extendedProperties || {};
+                const priv = ext.private || {};
+                const shared = ext.shared || {};
+                const hasFlag = priv.hackops === 'true' || shared.hackops === 'true' || priv.app === 'hackops' || shared.app === 'hackops';
+                const desc = String(event.description || '').toLowerCase();
+                const descTag = desc.includes('created via hackops') || desc.includes('#hackops') || desc.includes('[hackops]');
+                const sourceTag = String(event.source?.title || '').toLowerCase().includes('hackops');
+                return hasFlag || descTag || sourceTag;
+            })
+            : items;
+
+        const meetings = filtered.map(event => ({
             id: event.id,
             title: event.summary,
             description: event.description,
@@ -206,7 +246,7 @@ router.get('/meetings', ensureAuth, async (req, res) => {
             )?.uri,
             htmlLink: event.htmlLink,
             attendees: event.attendees?.map(a => a.email) || []
-        })) || [];
+        }));
 
         res.json({ meetings });
     } catch (error) {
@@ -301,6 +341,49 @@ router.get('/oauth2callback', async (req, res) => {
             <p>Check the backend console for more details.</p>
         </body></html>`;
         return res.status(500).send(errHtml);
+    }
+});
+
+// Disconnect Google Calendar (revoke tokens and clear local state)
+router.post('/disconnect', async (_req, res) => {
+    try {
+        const creds = oauth2Client.credentials || {};
+        // Try to revoke credentials if present
+        if (creds.access_token || creds.refresh_token) {
+            try {
+                await oauth2Client.revokeCredentials();
+            } catch (e) {
+                console.warn('[Google OAuth] revokeCredentials failed:', e?.message || e);
+                // proceed to clear local state regardless
+            }
+        }
+
+        // Clear in-memory credentials
+        oauth2Client.setCredentials({});
+
+        // Remove token file from disk if exists
+        try {
+            if (fs.existsSync(TOKEN_PATH)) {
+                fs.unlinkSync(TOKEN_PATH);
+            }
+        } catch (e) {
+            console.warn('[Google OAuth] Failed to remove token file:', e?.message || e);
+        }
+
+        // Provide a fresh auth URL for convenience
+        const authUrl = oauth2Client.generateAuthUrl({
+            access_type: 'offline',
+            scope: ['https://www.googleapis.com/auth/calendar'],
+            prompt: 'consent'
+        });
+
+        return res.json({ success: true, message: 'Disconnected from Google Calendar', authUrl });
+    } catch (error) {
+        console.error('Error during disconnect:', error?.response?.data || error?.message || error);
+        return res.status(500).json({
+            error: 'Failed to disconnect from Google Calendar',
+            details: error?.response?.data || error?.message
+        });
     }
 });
 
