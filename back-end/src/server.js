@@ -14,6 +14,8 @@ import todosAgendaRoutes from './routes/todosAgenda.routes.js';
 import swaggerUi from 'swagger-ui-express';
 import openapiSpec from './openapi.js';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import authRoutes from './routes/auth.routes.js';
 
 // Get the directory name for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -36,6 +38,7 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Serve generated media files (images) as static assets
 app.use('/media', express.static(path.join(__dirname, 'media')));
@@ -45,6 +48,7 @@ app.use('/outreach', outreachRoutes);
 app.use('/team-management', teamManagementRoutes);
 app.use('/speaker-jury-management', speakerJuryManagementRoutes);
 app.use('/growth', growthRoutes);
+app.use('/auth', authRoutes);
 app.use('/track-creation', trackCreationRoutes);
 app.use('/live-support', liveSupportRoutes);
 app.use('/partnerships', partnershipsRoutes);
