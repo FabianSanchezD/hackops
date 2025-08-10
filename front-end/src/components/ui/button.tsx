@@ -9,11 +9,22 @@ export interface ButtonProps
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "default", size = "md", ...props }, ref) => {
-    const base = "inline-flex items-center justify-center rounded-md font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none";
+    const base = [
+      // layout
+      "inline-flex items-center justify-center rounded-md font-medium",
+      // animations
+      "transform transition-all duration-150 ease-out",
+      // default hover/active effects
+      "hover:-translate-y-0.5 hover:scale-[1.01] hover:shadow-lg active:translate-y-0 active:scale-[0.99]",
+      // accessibility
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e40af]/40",
+      // disabled
+      "disabled:opacity-50 disabled:pointer-events-none disabled:hover:transform-none"
+    ].join(" ");
     const variants = {
-      default: "bg-[#0a174e] text-white hover:bg-[#0a174e]/90",
-      secondary: "bg-white text-[#0a174e] border border-[#0a174e]/20 hover:bg-white/90",
-      ghost: "bg-transparent hover:bg-black/5 dark:hover:bg-white/5",
+  default: "bg-[#0a174e] text-white hover:bg-[#0a174e]/90",
+  secondary: "bg-white text-[#0a174e] border border-[#0a174e]/20 hover:bg-white/90",
+  ghost: "bg-transparent hover:bg-black/5 dark:hover:bg-white/5",
     } as const;
     const sizes = {
       sm: "h-8 px-3 text-sm",
