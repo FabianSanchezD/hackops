@@ -4,7 +4,7 @@ import Image from "next/image";
 const integrations = [
 	{ name: "LinkedIn", icon: <Image src="/icons/linkedin_logo.png" alt="LinkedIn" width={40} height={40} /> },
 	{ name: "Discord", icon: <Image src="/icons/discord_logo_final.png" alt="Discord" width={40} height={40} /> },
-	{ name: "Luma", icon: <Image src="/icons/luma_logo.svg" alt="Luma" width={40} height={40} /> },
+	{ name: "Google Meet", icon: <Image src="/icons/meet_logo.png" alt="Google Meet" width={40} height={40} /> },
 ];
 
 const RoadmapIntegrations: React.FC = () => (
@@ -20,7 +20,7 @@ const RoadmapIntegrations: React.FC = () => (
 		</div>
 		<div className="text-center text-blue-200 mt-3">- SendGrid</div>
 		<div className="text-center text-blue-200 mt-2">- Google Meet</div>
-		<div className="text-center text-blue-200 mt-2">More integrations coming soon…</div>
+		<div className="text-center text-blue-200 mt-2">- More integrations coming soon…</div>
 	</section>
 );
 

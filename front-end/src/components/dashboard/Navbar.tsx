@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { Card, CardContent } from "../ui/card";
 import Button from "../ui/button";
 import Link from "next/link";
@@ -18,7 +19,15 @@ export default function Navbar() {
     <div className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="mx-auto max-w-7xl h-16 px-4 flex items-center justify-between">
         {/* Left: HackOps */}
-        <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
+        <div className="flex items-center gap-1">
+          <Image 
+            src="/icons/HackOps_Logo.svg" 
+            alt="HackOps Logo" 
+            width={27} 
+            height={27} 
+            className="object-contain"
+          />
+        
           <div className="text-2xl font-bold text-[#1e40af]">HackOps</div>
         </Link>
 
