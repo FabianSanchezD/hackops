@@ -44,6 +44,14 @@ interface DescriptionResponse {
     description: string;
 }
 
+type GrowthImage = {
+    id: number | string;
+    link: string;
+    description: string | null;
+    prompt: string;
+    created_at: string | null;
+};
+
 export default function GrowthPage() {
     const [prompt, setPrompt] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
@@ -53,6 +61,8 @@ export default function GrowthPage() {
     const [generatedDescription, setGeneratedDescription] = useState<DescriptionResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [showShareOverlay, setShowShareOverlay] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [myImages, setMyImages] = useState<GrowthImage[]>([]);
 
     const API_URL = useMemo(() => process.env.NEXT_PUBLIC_API_URL, []);
 
@@ -139,6 +149,49 @@ export default function GrowthPage() {
                 setIsGenerating(false);
             }
         };
+
+    // Save to Supabase (create + upload) and refresh gallery
+    const generateAndSave = async () => {
+        if (!prompt.trim() || !ensureApi()) return;
+        setSaving(true);
+        setError(null);
+        try {
+            const res = await fetch(`${API_URL}/growth-images`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt, enhance: true, withDescription: true }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data?.error || `Save failed (${res.status})`);
+            // Push to gallery
+            await loadMyImages();
+            // Update local preview
+            setGeneratedPost({
+              success: true,
+              message: 'Saved',
+              image: data?.image?.link,
+              originalPrompt: prompt,
+              enhancedPrompt: data?.image?.prompt || prompt,
+            });
+            setGeneratedDescription({ success: true, message: 'Saved', description: data?.image?.description || '' });
+        } catch (e: any) {
+            setError(e?.message || 'Failed to save image');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    async function loadMyImages() {
+        if (!ensureApi()) return;
+        try {
+            const res = await fetch(`${API_URL}/growth-images`, { credentials: 'include' });
+            const data = await res.json();
+            if (res.ok) setMyImages(Array.isArray(data?.images) ? data.images : []);
+        } catch {}
+    }
+
+    useEffect(() => { loadMyImages(); }, [API_URL]);
 
     // Sharing helpers
     const shareData = () => {
@@ -238,12 +291,12 @@ export default function GrowthPage() {
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
                             <Button 
-                                onClick={generateBoth} 
-                                disabled={isGenerating || isGeneratingPost || isGeneratingDesc || !prompt.trim()}
+                                onClick={generateAndSave} 
+                                disabled={saving || !prompt.trim()}
                                 className="px-8 py-3 min-w-[140px]"
                             >
-                                {isGenerating ? (
-                                    <ThreeDotsLoader key="generating" />
+                                {saving ? (
+                                    <ThreeDotsLoader key="generating" text="Saving" />
                                 ) : (
                                     'Generate Both'
                                 )}
@@ -272,6 +325,7 @@ export default function GrowthPage() {
                                     'Description Only'
                                 )}
                             </Button>
+                            {/* Unified with Generate Both above */}
                         </div>
 
                         {/* Image only preview */}
@@ -338,6 +392,28 @@ export default function GrowthPage() {
                         )}
                     </div>
                 </main>
+
+                                                {/* My Images Gallery inside a white card */}
+                                                <section className="mx-auto max-w-6xl px-6 pb-16">
+                                                    <div className="w-full bg-white/95 backdrop-blur border border-white/20 rounded-2xl p-6 shadow-2xl">
+                                                        <h2 className="text-2xl font-bold text-[#0a174e] mb-4">My Images</h2>
+                                                        {myImages.length === 0 ? (
+                                                            <p className="text-neutral-700">No images yet. Generate Both to save and see them here.</p>
+                                                        ) : (
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                                                {myImages.map((img) => (
+                                                                    <div key={img.id} className="bg-white rounded-xl border border-neutral-200 p-3 shadow">
+                                                                        <a href={img.link} target="_blank" rel="noreferrer">
+                                                                            <img src={img.link} alt={img.prompt} className="w-full rounded-lg object-contain" />
+                                                                        </a>
+                                                                        <div className="mt-2 text-sm text-neutral-700">{img.description || img.prompt}</div>
+                                                                        <div className="text-xs text-neutral-500 mt-1">{img.created_at ? new Date(img.created_at).toLocaleString() : ''}</div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </section>
 
                 {/* Share Overlay */}
                 {showShareOverlay && (

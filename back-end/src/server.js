@@ -9,6 +9,7 @@ import growthRoutes from './routes/growth.routes.js';
 import trackCreationRoutes from './routes/trackCreation.routes.js';
 import liveSupportRoutes from './routes/liveSupport.routes.js';
 import partnershipsRoutes from './routes/partnerships.routes.js';
+import growthImagesRoutes from './routes/growthImages.routes.js';
 import trackingRoutes from './routes/tracking.routes.js';
 import todosAgendaRoutes from './routes/todosAgenda.routes.js';
 import swaggerUi from 'swagger-ui-express';
@@ -52,6 +53,7 @@ app.use('/auth', authRoutes);
 app.use('/track-creation', trackCreationRoutes);
 app.use('/live-support', liveSupportRoutes);
 app.use('/partnerships', partnershipsRoutes);
+app.use('/growth-images', growthImagesRoutes);
 app.use('/tracking', trackingRoutes);
 app.use('/todos-agenda', todosAgendaRoutes);
 

@@ -1,7 +1,6 @@
 import OpenAI from "openai";
 import dotenv from 'dotenv';
 import path from 'path';
-import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 
 // Get the directory name for ES modules
@@ -25,32 +24,20 @@ export async function createPost(prompt) {
     // Use GPT-image-1 model directly for image generation
     const imageResponse = await client.images.generate({
       model: "gpt-image-1",
-      prompt: `Create a high-quality social media post image (1080x1350 square format) based on this prompt: ${prompt}. Make it visually appealing, professional, and suitable for social media sharing with vibrant colors and engaging composition. You can add extra text to the image.`,
-      size: "1080x1350"
+      prompt: `Create a high-quality social media post image (1024x1536 format) based on this prompt: ${prompt}. Make it visually appealing, professional, and suitable for social media sharing with vibrant colors and engaging composition. You can add extra text to the image.`,
+      size: "1024x1536"
     });
 
-    // gpt-image-1 may return base64 data; persist to disk and return a link
+    // gpt-image-1 may return base64 data or a temporary URL
     const data = imageResponse?.data?.[0];
     const b64 = data?.b64_json;
     const url = data?.url;
     if (!b64 && !url) throw new Error('No image returned by gpt-image-1');
 
-    let publicUrl = url;
-    if (b64) {
-      const buffer = Buffer.from(b64, 'base64');
-      const mediaDir = path.join(__dirname, '../media');
-      await fs.mkdir(mediaDir, { recursive: true });
-  const filename = `post_${Date.now()}.png`;
-      const filePath = path.join(mediaDir, filename);
-      await fs.writeFile(filePath, buffer);
-
-  const port = process.env.BACKEND_PORT || 5000;
-  const baseUrl = process.env.BACKEND_PUBLIC_URL || `http://localhost:${port}`;
-  publicUrl = `${baseUrl.replace(/\/$/, '')}/media/${filename}`;
-    }
-
+    // Do NOT persist to /media; return base64 (if present) or the URL.
     return {
-      imageUrl: publicUrl,
+      imageUrl: url || null,
+      imageB64: b64 || null,
       originalPrompt: prompt,
       enhancedPrompt: `Create a high-quality social media post image (1080x1350 format) based on this prompt: ${prompt}. Make it visually appealing, professional, and suitable for social media sharing with vibrant colors and engaging composition.`
     };
