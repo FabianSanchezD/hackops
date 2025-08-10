@@ -28,15 +28,26 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 const app = express();
 
 // Middleware
+const corsOrigins = [
+    'http://localhost:3000',
+    'https://localhost:3000',
+    'http://localhost:3001',
+    'https://localhost:3001',
+    'https://hackops-nu.vercel.app',
+];
+
 app.use(cors({
-    // TODO: add vercel front-end here (when deployed)
-    origin: [
-        'http://localhost:3000',
-        'https://localhost:3000',
-        'http://localhost:3001',
-        'https://localhost:3001',
-    ],
-    credentials: true
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true); // allow non-browser tools
+        if (corsOrigins.includes(origin)) return callback(null, true);
+        // Allow Vercel preview URLs for this project
+        const vercelPreview = /^https:\/\/hackops-nu-[a-z0-9-]+\.vercel\.app$/i;
+        if (vercelPreview.test(origin)) return callback(null, true);
+        return callback(new Error(`CORS: Origin not allowed: ${origin}`));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 app.use(express.json());

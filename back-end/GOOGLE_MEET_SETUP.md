@@ -43,14 +43,6 @@ GOOGLE_REFRESH_TOKEN=your_refresh_token_here
    - Verify the Google Meet link is generated
    - Check that the event appears in Google Calendar
 
-## API Endpoints
-
-- `POST /live-support/create-meeting` - Create a new Google Meet
-- `GET /live-support/meetings` - Get upcoming meetings
-- `DELETE /live-support/meetings/:eventId` - Delete a meeting
-- `GET /live-support/auth-url` - Get OAuth authorization URL
-- `POST /live-support/auth-callback` - Handle OAuth callback
-
 ## Features
 
 - ✅ Create Google Meet events with custom titles and descriptions
@@ -62,9 +54,3 @@ GOOGLE_REFRESH_TOKEN=your_refresh_token_here
 - ✅ Email reminders (24 hours and 10 minutes before)
 - ✅ Calendar integration
 
-## Security Notes
-
-- Store credentials securely
-- Use HTTPS in production
-- Implement proper authentication
-- Consider token refresh mechanisms

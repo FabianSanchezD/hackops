@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import Button from "@/components/ui/button";
+import { Card, CardContent } from "../ui/card";
+import Button from "../ui/button";
 
 // Component: Extras and User (simple placeholders)
 export default function ExtrasAndUser() {
