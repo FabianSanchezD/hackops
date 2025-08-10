@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { supabase } from '../utils/supabase.js';
-import { getTeamMembersByCreator } from '../utils/teammanagement.js';
+import { getTeamMembersByCreator, getByCreator, createEntry } from '../utils/teammanagement.js';
 import { sendEmail } from '../utils/email.js';
 import { openai } from '../utils/openaiClient.js';
 
@@ -38,6 +38,73 @@ router.get('/my-team', async (req, res) => {
 	} catch (e) {
 		return res.status(500).json({ error: 'Failed to fetch team members' });
 	}
+});
+
+// Create a team member
+router.post('/team-members', async (req, res) => {
+	try {
+		const token = req.cookies?.[COOKIE_NAME] || (req.headers.authorization || '').replace('Bearer ', '');
+		if (!token) return res.status(401).json({ error: 'Unauthorized' });
+		const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+		if (userErr || !userData?.user) return res.status(401).json({ error: 'Unauthorized' });
+		const userId = userData.user.id;
+
+		const { name, email, phone_number } = req.body || {};
+		if (!name || !email) return res.status(400).json({ error: 'Name and email are required' });
+		const { data, error } = await createEntry('team_members', { name, email, phone_number }, userId);
+		if (error) return res.status(500).json({ error: error.message || String(error) });
+		return res.status(201).json({ entry: data });
+	} catch (e) {
+		console.error('[team-management] /team-members POST error:', e);
+		return res.status(500).json({ error: e?.message || 'Failed to create team member' });
+	}
+});
+
+// Generic helper to extract logged-in user
+async function getAuthUser(req) {
+	const token = req.cookies?.[COOKIE_NAME] || (req.headers.authorization || '').replace('Bearer ', '');
+	if (!token) return { error: 'Unauthorized' };
+	const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+	if (userErr || !userData?.user) return { error: 'Unauthorized' };
+	return { user: userData.user };
+}
+
+// Jury endpoints
+router.get('/jury', async (req, res) => {
+	const { user, error } = await getAuthUser(req);
+	if (error) return res.status(401).json({ error });
+	const { data, error: err } = await getByCreator('jury', user.id);
+	if (err) return res.status(500).json({ error: err.message || 'Failed to fetch jury' });
+	return res.json({ jury: data });
+});
+
+router.post('/jury', async (req, res) => {
+	const { user, error } = await getAuthUser(req);
+	if (error) return res.status(401).json({ error });
+	const { name, email, phone_number } = req.body || {};
+	if (!name || !email) return res.status(400).json({ error: 'Name and email are required' });
+	const { data, error: err } = await createEntry('jury', { name, email, phone_number }, user.id);
+	if (err) return res.status(500).json({ error: err.message || String(err) });
+	return res.status(201).json({ entry: data });
+});
+
+// Speakers endpoints
+router.get('/speakers', async (req, res) => {
+	const { user, error } = await getAuthUser(req);
+	if (error) return res.status(401).json({ error });
+	const { data, error: err } = await getByCreator('speakers', user.id);
+	if (err) return res.status(500).json({ error: err.message || 'Failed to fetch speakers' });
+	return res.json({ speakers: data });
+});
+
+router.post('/speakers', async (req, res) => {
+	const { user, error } = await getAuthUser(req);
+	if (error) return res.status(401).json({ error });
+	const { name, email, phone_number } = req.body || {};
+	if (!name || !email) return res.status(400).json({ error: 'Name and email are required' });
+	const { data, error: err } = await createEntry('speakers', { name, email, phone_number }, user.id);
+	if (err) return res.status(500).json({ error: err.message || String(err) });
+	return res.status(201).json({ entry: data });
 });
 
 export default router;

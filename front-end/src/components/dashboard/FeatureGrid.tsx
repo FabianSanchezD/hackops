@@ -35,7 +35,7 @@ const features = [
     href: "/dashboard/team-management",
   },
   {
-    title: "Speaker Jury Orchestration",
+    title: "Speaker / Jury Orchestration",
     icon: Mic,
     description: "Coordinate speakers and judges",
     color: "text-purple-600",
@@ -53,7 +53,7 @@ const features = [
     href: "/dashboard/growth",
   },
   {
-    title: "Agenda/Todos",
+    title: "Agenda / Todos",
     icon: CheckSquare,
     description: "Schedule and track tasks",
     color: "text-orange-600",
@@ -62,7 +62,7 @@ const features = [
     href: "/dashboard/todos-agenda",
   },
   {
-    title: "Challenge Track Creation",
+    title: "Challenge / Track Creation",
     icon: Trophy,
     description: "Design competition tracks",
     color: "text-yellow-600",

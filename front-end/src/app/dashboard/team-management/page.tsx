@@ -20,7 +20,13 @@ export default function TeamManagementPage() {
   const [error, setError] = React.useState<string | null>(null);
 
   // selection + compose
+  // Selections are per-section
   const [selectedIds, setSelectedIds] = React.useState<Array<string | number>>([]);
+  const [showAddModal, setShowAddModal] = React.useState(false);
+  const [newName, setNewName] = React.useState("");
+  const [newEmail, setNewEmail] = React.useState("");
+  const [newPhone, setNewPhone] = React.useState("");
+  const [adding, setAdding] = React.useState(false);
   const selected = React.useMemo(
     () => rows.find((r) => r.id === selectedIds[0]) || null,
     [rows, selectedIds]
@@ -44,12 +50,14 @@ export default function TeamManagementPage() {
   const currentRows = rows.slice(start, start + pageSize);
   const allPageSelected = currentRows.length > 0 && currentRows.every(r => selectedIds.includes(r.id));
 
+
   React.useEffect(() => {
     let active = true;
     async function load() {
       try {
         setLoading(true);
         setError(null);
+        
         // Check auth first so we can show a clear message
         const me = await fetch(`${API_BASE}/auth/me`, {
           credentials: "include",
@@ -64,7 +72,7 @@ export default function TeamManagementPage() {
           );
         }
 
-        const res = await fetch(`${API_BASE}/team-management/my-team`, {
+  const res = await fetch(`${API_BASE}/team-management/my-team`, {
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           cache: "no-store",
@@ -79,6 +87,7 @@ export default function TeamManagementPage() {
         }
         const data = await res.json();
         if (active) setRows(Array.isArray(data?.team) ? data.team : []);
+
       } catch (e: any) {
         if (active) setError(e?.message || "Failed to load team");
       } finally {
@@ -142,6 +151,32 @@ export default function TeamManagementPage() {
     }
   }
 
+  async function addTeamMember() {
+    const name = newName.trim();
+    const email = newEmail.trim();
+    const phone_number = newPhone.trim() ? { number: newPhone.trim() } : null;
+    if (!name || !email) { setToast('Name and email are required'); return; }
+    try {
+      setAdding(true);
+      const res = await fetch(`${API_BASE}/team-management/team-members`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, phone_number }),
+      });
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data?.error || `Failed to add (${res.status})`);
+      setRows((prev) => [...prev, data.entry]);
+      setShowAddModal(false);
+      setNewName(''); setNewEmail(''); setNewPhone('');
+      setToast('Team member added');
+    } catch (e: any) {
+      setToast(e?.message || 'Failed to add');
+    } finally {
+      setAdding(false);
+    }
+  }
+
   async function sendBulk() {
     if (allSelectedEmails.length === 0) {
       setToast("Select at least one member with an email");
@@ -185,9 +220,10 @@ export default function TeamManagementPage() {
       <main className="mx-auto max-w-5xl px-4 py-6 md:py-10">
         <Card className="border-neutral-200 shadow-sm">
           <CardContent className="p-5 md:p-7">
-            <h1 className="text-2xl md:text-3xl font-bold text-[#1e40af] mb-4">
-              Team Management
-            </h1>
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-2xl md:text-3xl font-bold text-[#1e40af]">Team Management</h1>
+              <Button onClick={() => setShowAddModal(true)}>Add Team Member</Button>
+            </div>
 
             {loading && (
               <div className="text-sm text-neutral-600">Loading team…</div>
@@ -400,11 +436,34 @@ export default function TeamManagementPage() {
                     </>
                   )}
                 </div>
+
+                {/* Note: Jury & Speakers moved to /dashboard/speaker-jury-management */}
               </>
             )}
           </CardContent>
         </Card>
       </main>
+
+      {/* Add Team Member Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg w-full max-w-md shadow-lg border border-neutral-200">
+            <div className="px-5 py-4 border-b border-neutral-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Add Team Member</h3>
+              <button className="text-neutral-500 hover:text-neutral-700" onClick={()=>setShowAddModal(false)}>✕</button>
+            </div>
+            <div className="p-5 space-y-3">
+              <input className="w-full border border-neutral-300 rounded-md px-3 py-2" placeholder="Name" value={newName} onChange={(e)=>setNewName(e.target.value)} />
+              <input className="w-full border border-neutral-300 rounded-md px-3 py-2" placeholder="Email" value={newEmail} onChange={(e)=>setNewEmail(e.target.value)} />
+              <input className="w-full border border-neutral-300 rounded-md px-3 py-2" placeholder="Phone (optional)" value={newPhone} onChange={(e)=>setNewPhone(e.target.value)} />
+            </div>
+            <div className="px-5 py-4 border-t border-neutral-200 flex justify-end gap-2">
+              <Button variant="secondary" onClick={()=>setShowAddModal(false)}>Cancel</Button>
+              <Button disabled={adding || !newName.trim() || !newEmail.trim()} onClick={addTeamMember}>{adding ? 'Adding…' : 'Add'}</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -416,5 +475,7 @@ async function safeJson(res: Response) {
     return null;
   }
 }
+
+// end
 
 // end
