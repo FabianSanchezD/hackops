@@ -25,8 +25,8 @@ export async function createPost(prompt) {
     // Use GPT-image-1 model directly for image generation
     const imageResponse = await client.images.generate({
       model: "gpt-image-1",
-      prompt: `Create a high-quality social media post image (1080x1080 square format) based on this prompt: ${prompt}. Make it visually appealing, professional, and suitable for social media sharing with vibrant colors and engaging composition.`,
-      size: "1024x1024"
+      prompt: `Create a high-quality social media post image (1080x1350 square format) based on this prompt: ${prompt}. Make it visually appealing, professional, and suitable for social media sharing with vibrant colors and engaging composition. You can add extra text to the image.`,
+      size: "1080x1350"
     });
 
     // gpt-image-1 may return base64 data; persist to disk and return a link
