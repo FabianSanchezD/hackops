@@ -2,3 +2,15 @@ node_modules/
 /node_modules
 
 .env
+
+# Ignore all env variants, but keep examples
+.env.*
+!.env.example
+
+# Backend token storage (Google OAuth tokens)
+back-end/google_tokens.json
+
+# Per-app envs (if present)
+back-end/.env
+front-end/.env
+front-end/.env.local
