@@ -63,7 +63,6 @@ export async function createPost(prompt) {
 
 /**
  * Creates a concise, engaging description based on a prompt
- * Note: "GPT-5" is not available; using a current GPT-4.1-class model instead.
  * @param {string} prompt - The user's prompt for the description content
  * @returns {Promise<string>} - Returns the generated description text
  */

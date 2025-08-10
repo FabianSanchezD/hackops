@@ -19,7 +19,7 @@ const RoadmapIntegrations: React.FC = () => (
 			))}
 		</div>
 		<div className="text-center text-blue-200 mt-3">- SendGrid</div>
-		<div className="text-center text-blue-200 mt-2">- Google Meet</div>
+		<div className="text-center text-blue-200 mt-2">- Luma</div>
 		<div className="text-center text-blue-200 mt-2">- More integrations coming soon…</div>
 	</section>
 );

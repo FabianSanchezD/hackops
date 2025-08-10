@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Card, CardContent } from "../ui/card";
+import Link from "next/link";
 import {
   Users,
   UsersRound,
@@ -23,6 +24,7 @@ const features = [
     bgColor: "bg-blue-50",
     hoverBg: "group-hover:bg-blue-100",
     badge: "Essential",
+  href: "/dashboard/outreach",
   },
   {
     title: "Team Management",
@@ -32,6 +34,7 @@ const features = [
     bgColor: "bg-indigo-50",
     hoverBg: "group-hover:bg-indigo-100",
     badge: "Core",
+  href: "/dashboard/team-management",
   },
   {
     title: "Speaker Jury Orchestration",
@@ -41,6 +44,7 @@ const features = [
     bgColor: "bg-purple-50",
     hoverBg: "group-hover:bg-purple-100",
     badge: "Premium",
+  href: "/dashboard/speaker-jury-management",
   },
   {
     title: "Community Growth",
@@ -50,6 +54,7 @@ const features = [
     bgColor: "bg-green-50",
     hoverBg: "group-hover:bg-green-100",
     badge: "Growth",
+  href: "/dashboard/growth",
   },
   {
     title: "Agenda/Todos",
@@ -59,6 +64,7 @@ const features = [
     bgColor: "bg-orange-50",
     hoverBg: "group-hover:bg-orange-100",
     badge: "Daily",
+  href: "/dashboard/todos-agenda",
   },
   {
     title: "Challenge Track Creation",
@@ -68,6 +74,7 @@ const features = [
     bgColor: "bg-yellow-50",
     hoverBg: "group-hover:bg-yellow-100",
     badge: "Creative",
+  href: "/dashboard/track-creation",
   },
   {
     title: "Live Event Support",
@@ -77,6 +84,7 @@ const features = [
     bgColor: "bg-red-50",
     hoverBg: "group-hover:bg-red-100",
     badge: "24/7",
+  href: "/dashboard/live-support",
   },
   {
     title: "Fundraising Partnerships",
@@ -86,6 +94,7 @@ const features = [
     bgColor: "bg-teal-50",
     hoverBg: "group-hover:bg-teal-100",
     badge: "Business",
+  href: "/dashboard/partnerships",
   },
   {
     title: "Mission Tracking",
@@ -95,6 +104,7 @@ const features = [
     bgColor: "bg-pink-50",
     hoverBg: "group-hover:bg-pink-100",
     badge: "Analytics",
+  href: "/dashboard/tracking",
   },
 ];
 
@@ -104,31 +114,35 @@ export default function FeatureGrid() {
       {features.map((feature, index) => {
         const IconComponent = feature.icon;
         return (
-          <Card
-            key={index}
-            className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer border-neutral-200 hover:border-[#1e40af]/30 relative overflow-hidden"
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <div className={`p-3 rounded-xl ${feature.bgColor} ${feature.hoverBg} group-hover:scale-110 transition-all duration-300 shadow-sm`}>
-                  <IconComponent className={`h-6 w-6 ${feature.color} transition-transform group-hover:rotate-6`} />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg text-neutral-900 mb-2 group-hover:text-[#1e40af] transition-colors leading-tight">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed group-hover:text-neutral-700 transition-colors">
-                    {feature.description}
-                  </p>
-                  <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <span className="text-xs font-medium text-[#1e40af] flex items-center gap-1">
-                      Explore →
-                    </span>
+          <Link key={index} href={feature.href} className="block group" aria-label={`${feature.title} page`}>
+            <Card className="hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer border-neutral-200 hover:border-[#1e40af]/30 relative overflow-hidden">
+              <div className="absolute top-3 right-3">
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${feature.bgColor} ${feature.color} opacity-70 group-hover:opacity-100 transition-opacity`}>
+                  {feature.badge}
+                </span>
+              </div>
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className={`p-3 rounded-xl ${feature.bgColor} ${feature.hoverBg} group-hover:scale-110 transition-all duration-300 shadow-sm`}>
+                    <IconComponent className={`h-6 w-6 ${feature.color} transition-transform group-hover:rotate-6`} />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg text-neutral-900 mb-2 group-hover:text-[#1e40af] transition-colors leading-tight">
+                      {feature.title}
+                    </h3>
+                    <p className="text-sm text-neutral-600 leading-relaxed group-hover:text-neutral-700 transition-colors">
+                      {feature.description}
+                    </p>
+                    <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <span className="text-xs font-medium text-[#1e40af] flex items-center gap-1">
+                        Explore →
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
         );
       })}
     </div>
