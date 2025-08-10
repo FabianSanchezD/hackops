@@ -20,6 +20,7 @@ export default function Navbar() {
   const [userEmail, setUserEmail] = React.useState<string | null>(null);
   const [loadingUser, setLoadingUser] = React.useState(true);
   const [loggingOut, setLoggingOut] = React.useState(false);
+  const [showUnavailable, setShowUnavailable] = React.useState(false);
 
   React.useEffect(() => {
     let isMounted = true;
@@ -51,8 +52,36 @@ export default function Navbar() {
       router.push("/login");
     }
   }
+
+  function handleAddHackathonClick() {
+    setShowUnavailable(true);
+    
+    // Vibrate if supported
+    if (navigator.vibrate) {
+      navigator.vibrate([100, 50, 100]);
+    }
+    
+    // Hide overlay after animation
+    setTimeout(() => setShowUnavailable(false), 2000);
+  }
   return (
-    <div className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white">
+    <>
+      {/* Red overlay for unavailable feature */}
+      {showUnavailable && (
+        <div className="fixed inset-0 bg-red-500/20 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in-0 duration-250">
+          <div className="bg-white rounded-xl p-6 shadow-2xl border border-red-200 max-w-sm mx-4 animate-in zoom-in-95 duration-300">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-red-600 text-xl">🚧</span>
+              </div>
+              <h3 className="text-lg font-semibold text-neutral-900 mb-2">Not Available Yet</h3>
+              <p className="text-sm text-neutral-600">This feature is coming soon!</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white">
       <div className="mx-auto max-w-7xl h-16 px-4 flex items-center justify-between">
         {/* Left: HackOps */}
         <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
@@ -76,7 +105,7 @@ export default function Navbar() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="center" className="w-56 animate-in fade-in-0 zoom-in-95 duration-200 border-0 shadow-lg">
-            <DropdownMenuItem className="flex items-center gap-2 hover:bg-blue-50 focus:bg-blue-50">
+            <DropdownMenuItem onClick={handleAddHackathonClick} className="flex items-center gap-2 hover:bg-blue-50 focus:bg-blue-50 cursor-pointer">
               <Plus size={16} className="text-[#1e40af]" />
               Add New Hackathon
             </DropdownMenuItem>
@@ -121,6 +150,7 @@ export default function Navbar() {
           </Button>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
