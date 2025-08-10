@@ -27,11 +27,16 @@ const Navbar: React.FC = () => {
 					<span className="block w-6 h-0.5 bg-white mb-1"></span>
 					<span className="block w-6 h-0.5 bg-white"></span>
 				</button>
-				<ul className="hidden md:flex gap-8 font-medium">
+				<ul className="hidden md:flex gap-8 font-medium items-center">
 					<li><a href="#features" className="hover:text-blue-300 transition">Features</a></li>
 					<li><a href="#demo" className="hover:text-blue-300 transition">Demo</a></li>
 					<li><a href="#integrations" className="hover:text-blue-300 transition">Integrations</a></li>
 					<li><a href="#get-access" className="hover:text-blue-300 transition">Get Access</a></li>
+					<li>
+						<a href="/login" className="ml-2 inline-flex items-center rounded-md px-3 py-1.5 text-sm font-semibold bg-white text-[#0a174e] hover:bg-blue-50 transition">
+							for the hackathon viewers
+						</a>
+					</li>
 				</ul>
 			</div>
 			{open && (
@@ -40,6 +45,7 @@ const Navbar: React.FC = () => {
 					<li><a onClick={() => setOpen(false)} href="#demo" className="block py-2 hover:text-blue-300">Demo</a></li>
 					<li><a onClick={() => setOpen(false)} href="#integrations" className="block py-2 hover:text-blue-300">Integrations</a></li>
 					<li><a onClick={() => setOpen(false)} href="#get-access" className="block py-2 hover:text-blue-300">Get Access</a></li>
+					<li><a onClick={() => setOpen(false)} href="/login" className="block py-2 text-white/90 bg-white/5 rounded hover:bg-white/10">for the hackathon viewers</a></li>
 				</ul>
 			)}
 		</nav>

@@ -4,6 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import Button from "../ui/button";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +15,42 @@ import {
 import { ChevronDown, Settings, Plus, Settings2, LogOut } from "lucide-react";
 
 export default function Navbar() {
+  const router = useRouter();
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const [userEmail, setUserEmail] = React.useState<string | null>(null);
+  const [loadingUser, setLoadingUser] = React.useState(true);
+  const [loggingOut, setLoggingOut] = React.useState(false);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    async function loadUser() {
+      try {
+        const res = await fetch(`${API_BASE}/auth/me`, { credentials: "include" });
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) setUserEmail(data?.user?.email ?? null);
+        }
+      } catch {
+        // ignore
+      } finally {
+        if (isMounted) setLoadingUser(false);
+      }
+    }
+    loadUser();
+    return () => { isMounted = false; };
+  }, [API_BASE]);
+
+  async function onLogout() {
+    try {
+      setLoggingOut(true);
+      await fetch(`${API_BASE}/auth/logout`, { method: "POST", credentials: "include" });
+    } catch {
+      // ignore
+    } finally {
+      setLoggingOut(false);
+      router.push("/login");
+    }
+  }
   return (
     <div className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="mx-auto max-w-7xl h-16 px-4 flex items-center justify-between">
@@ -52,12 +89,16 @@ export default function Navbar() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-2 transition-colors hover:bg-neutral-100 focus:outline-none">
                 <div className="flex items-center gap-2">
-                  <img 
-                    src="/placeholder_profilepic.png" 
-                    alt="Profile" 
-                    className="h-8 w-8 rounded-full object-cover transition-transform hover:scale-105"
+                  <Image
+                    src="/placeholder_profilepic.svg" 
+                    alt="Profile"
+                    height={32}
+                    width={32}
+                    className="rounded-full object-cover transition-transform hover:scale-105"
                   />
-                  <span className="text-sm font-medium">Fabian Sanchez</span>
+                  <span className="text-sm font-medium" title={userEmail || undefined}>
+                    {userEmail ? userEmail : (loadingUser ? "Loading..." : "Account")}
+                  </span>
                   <ChevronDown size={14} className="transition-transform duration-200 data-[state=open]:rotate-180" />
                 </div>
               </Button>
@@ -68,9 +109,9 @@ export default function Navbar() {
                 Account Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="hover:bg-red-50 focus:bg-red-50 text-red-600 focus:text-red-700">
+              <DropdownMenuItem onClick={onLogout} className="hover:bg-red-50 focus:bg-red-50 text-red-600 focus:text-red-700">
                 <LogOut size={16} className="mr-2" />
-                Sign Out
+                {loggingOut ? "Signing out…" : "Sign Out"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
