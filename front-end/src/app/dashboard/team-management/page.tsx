@@ -3,6 +3,7 @@
 import React from "react";
 import Navbar from "../../../components/dashboard/Navbar";
 import { Card, CardContent } from "../../../components/ui/card";
+import Button from "../../../components/ui/button";
 
 type TeamMember = {
   id: number | string;
@@ -18,13 +19,37 @@ export default function TeamManagementPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
+  // selection + compose
+  const [selectedIds, setSelectedIds] = React.useState<Array<string | number>>([]);
+  const selected = React.useMemo(
+    () => rows.find((r) => r.id === selectedIds[0]) || null,
+    [rows, selectedIds]
+  );
+  const [subject, setSubject] = React.useState("");
+  const [body, setBody] = React.useState("");
+  const [sending, setSending] = React.useState(false);
+  const [aiPrompt, setAiPrompt] = React.useState("");
+  const [aiLoading, setAiLoading] = React.useState(false);
+  const [toast, setToast] = React.useState<string | null>(null);
+  const allSelectedEmails = React.useMemo(
+    () => rows.filter(r => selectedIds.includes(r.id)).map(r => r.email).filter(Boolean) as string[],
+    [rows, selectedIds]
+  );
+
+  // pagination
+  const [page, setPage] = React.useState(1);
+  const pageSize = 10;
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  const start = (page - 1) * pageSize;
+  const currentRows = rows.slice(start, start + pageSize);
+  const allPageSelected = currentRows.length > 0 && currentRows.every(r => selectedIds.includes(r.id));
+
   React.useEffect(() => {
     let active = true;
     async function load() {
       try {
         setLoading(true);
         setError(null);
-
         // Check auth first so we can show a clear message
         const me = await fetch(`${API_BASE}/auth/me`, {
           credentials: "include",
@@ -66,22 +91,103 @@ export default function TeamManagementPage() {
     };
   }, [API_BASE]);
 
+  async function askAiForEmail() {
+    try {
+      setAiLoading(true);
+      setToast(null);
+      const res = await fetch(`${API_BASE}/team-management/ai-email`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: aiPrompt || "Outreach email to a hackathon team member",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || `AI failed (HTTP ${res.status})`);
+      setSubject(data.subject || "");
+      setBody(data.text || "");
+    } catch (e: any) {
+      setToast(e?.message || "Failed to generate email");
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  async function sendEmail() {
+    if (!selected?.email) {
+      setToast("Please select a member with an email");
+      return;
+    }
+    if (!subject.trim() || !body.trim()) {
+      setToast("Subject and message are required");
+      return;
+    }
+    try {
+      setSending(true);
+      setToast(null);
+      const res = await fetch(`${API_BASE}/team-management/send-email`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: selected.email, subject, text: body }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || `Failed to send (HTTP ${res.status})`);
+      setToast("Email sent");
+    } catch (e: any) {
+      setToast(e?.message || "Failed to send email");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function sendBulk() {
+    if (allSelectedEmails.length === 0) {
+      setToast("Select at least one member with an email");
+      return;
+    }
+    if (!subject.trim() || !body.trim()) {
+      setToast("Subject and message are required");
+      return;
+    }
+    try {
+      setSending(true);
+      setToast(null);
+      const res = await fetch(`${API_BASE}/team-management/send-bulk`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: allSelectedEmails, subject, text: body }),
+      });
+      const data = await res.json();
+      if (!res.ok && res.status !== 207) {
+        throw new Error(data?.error || `Bulk send failed (HTTP ${res.status})`);
+      }
+      // 200 or 207 with summary
+      const sent = data?.sent ?? 0;
+      const failed = data?.failed ?? 0;
+      if (failed > 0) {
+        setToast(`Sent ${sent}, failed ${failed}.`);
+      } else {
+        setToast(`Sent ${sent} emails.`);
+      }
+    } catch (e: any) {
+      setToast(e?.message || "Bulk send failed");
+    } finally {
+      setSending(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-blue-50">
       <Navbar />
       <main className="mx-auto max-w-5xl px-4 py-6 md:py-10">
         <Card className="border-neutral-200 shadow-sm">
           <CardContent className="p-5 md:p-7">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-[#1e40af]">
-                  Team Management
-                </h1>
-                <p className="text-neutral-600 mt-1">
-                  View members associated with your account.
-                </p>
-              </div>
-            </div>
+            <h1 className="text-2xl md:text-3xl font-bold text-[#1e40af] mb-4">
+              Team Management
+            </h1>
 
             {loading && (
               <div className="text-sm text-neutral-600">Loading team…</div>
@@ -89,59 +195,212 @@ export default function TeamManagementPage() {
             {error && <div className="text-sm text-red-600">{error}</div>}
 
             {!loading && !error && (
-              <div className="overflow-x-auto border border-neutral-200 rounded-lg bg-white">
-                <table className="min-w-full divide-y divide-neutral-200">
-                  <thead className="bg-neutral-50/80">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700">
-                        Name
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700">
-                        Email
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700">
-                        Phone
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700">
-                        Added
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-neutral-200">
-                    {rows.length === 0 && (
+              <>
+                {/* Table */}
+                <div className="overflow-x-auto border border-neutral-200 rounded-lg bg-white">
+                  <table className="min-w-full divide-y divide-neutral-200">
+                    <thead className="bg-neutral-50/80">
                       <tr>
-                        <td
-                          colSpan={4}
-                          className="px-4 py-6 text-center text-neutral-500 text-sm"
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              aria-label="Select all on page"
+                              checked={allPageSelected}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedIds((prev) => {
+                                    const ids = new Set(prev);
+                                    currentRows.forEach(r => ids.add(r.id));
+                                    return Array.from(ids);
+                                  });
+                                } else {
+                                  setSelectedIds((prev) => prev.filter(id => !currentRows.find(r => r.id === id)));
+                                }
+                              }}
+                            />
+                            <span>Select</span>
+                          </div>
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700">
+                          Name
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700">
+                          Email
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-neutral-700">
+                          Added
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-200">
+                      {currentRows.length === 0 && (
+                        <tr>
+                          <td
+                            colSpan={4}
+                            className="px-4 py-6 text-center text-neutral-500 text-sm"
+                          >
+                            No team members yet.
+                          </td>
+                        </tr>
+                      )}
+                      {currentRows.map((r) => (
+                        <tr
+                          key={r.id}
+                          className={`hover:bg-neutral-50 ${
+                            selectedIds.includes(r.id) ? "bg-blue-50/50" : ""
+                          }`}
                         >
-                          No team members yet.
-                        </td>
-                      </tr>
-                    )}
-                    {rows.map((r) => (
-                      <tr key={r.id} className="hover:bg-neutral-50">
-                        <td className="px-4 py-3 text-sm text-neutral-900">
-                          {r.name}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-neutral-700">
-                          {r.email}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-neutral-700">
-                          {typeof r.phone_number === "object" &&
-                          r.phone_number !== null
-                            ? r.phone_number.phone || ""
-                            : r.phone_number || ""}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-neutral-500">
-                          {r.created_at
-                            ? new Date(r.created_at).toLocaleString()
-                            : ""}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                          <td className="px-4 py-3 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.includes(r.id)}
+                              onChange={(e) => {
+                                setSelectedIds((prev) => {
+                                  if (e.target.checked) return Array.from(new Set([...prev, r.id]));
+                                  return prev.filter((id) => id !== r.id);
+                                });
+                              }}
+                              aria-label={`Select ${r.name || r.email}`}
+                            />
+                          </td>
+                          <td className="px-4 py-3 text-sm text-neutral-900">
+                            {r.name || "—"}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-neutral-700">
+                            {r.email || "—"}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-neutral-500">
+                            {r.created_at
+                              ? new Date(r.created_at).toLocaleDateString()
+                              : ""}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                <div className="flex items-center justify-between mt-3 text-sm">
+                  <div className="text-neutral-600">
+                    Page {page} of {totalPages}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                    >
+                      Prev
+                    </Button>
+                    <Button
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page === totalPages}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Composer below */}
+                <div className="bg-white border border-neutral-200 rounded-lg p-4 mt-6">
+                  <h2 className="text-lg font-semibold text-[#1e40af] mb-3">
+                    Compose Email
+                  </h2>
+                  {selectedIds.length === 0 && (
+                    <p className="text-sm text-neutral-600">
+                      Select one or more team members to start composing an email.
+                    </p>
+                  )}
+
+                  {selectedIds.length > 0 && (
+                    <>
+                      <div className="text-sm text-neutral-700 mb-3">
+                        To: {allSelectedEmails.length === 1 ? (
+                          <>
+                            <span className="font-medium">{selected?.name || selected?.email}</span>{" "}
+                            <span className="text-neutral-500">({selected?.email || "no email"})</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="font-medium">{allSelectedEmails.length} recipients</span>
+                            <span className="text-neutral-500"> ({allSelectedEmails.slice(0,3).join(", ")}{allSelectedEmails.length>3?", …":""})</span>
+                          </>
+                        )}
+                      </div>
+
+                      <div className="mb-3">
+                        <label className="block text-xs font-medium text-neutral-600 mb-1">
+                          Ask AI for subject and message
+                        </label>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <input
+                            className="flex-1 border border-neutral-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#1e40af]/70 focus:border-transparent"
+                            placeholder="e.g., Follow-up about our hackathon details"
+                            value={aiPrompt}
+                            onChange={(e) => setAiPrompt(e.target.value)}
+                          />
+                          <Button onClick={askAiForEmail} disabled={aiLoading}>
+                            {aiLoading ? "Thinking…" : "Ask AI"}
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col md:flex-row gap-3 mb-3">
+                        <div className="md:w-1/2">
+                          <label className="block text-xs font-medium text-neutral-600 mb-1">
+                            Subject
+                          </label>
+                          <input
+                            className="w-full border border-neutral-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#1e40af]/70 focus:border-transparent"
+                            placeholder="Subject"
+                            value={subject}
+                            onChange={(e) => setSubject(e.target.value)}
+                          />
+                        </div>
+                        <div className="md:w-1/2">
+                          <label className="block text-xs font-medium text-neutral-600 mb-1">
+                            Message
+                          </label>
+                          <textarea
+                            className="w-full min-h-[120px] border border-neutral-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#1e40af]/70 focus:border-transparent"
+                            placeholder="Write your message"
+                            value={body}
+                            onChange={(e) => setBody(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      {toast && (
+                        <div className="text-sm mb-2 text-neutral-700">{toast}</div>
+                      )}
+
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="secondary"
+                          onClick={sendBulk}
+                          disabled={sending || !subject.trim() || !body.trim() || allSelectedEmails.length === 0}
+                        >
+                          {sending ? "Sending…" : `Send to Selected (${allSelectedEmails.length})`}
+                        </Button>
+                        <Button
+                          onClick={sendEmail}
+                          disabled={
+                            sending ||
+                            !subject.trim() ||
+                            !body.trim() ||
+                            !selected?.email ||
+                            allSelectedEmails.length !== 1
+                          }
+                        >
+                          {sending ? "Sending…" : "Send Single"}
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
@@ -157,3 +416,5 @@ async function safeJson(res: Response) {
     return null;
   }
 }
+
+// end
