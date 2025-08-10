@@ -33,7 +33,7 @@ HackOps enables organizers to:
 ---
 
 ## 📂 Folder Structure
-
+```
 hackops/
 ├── back-end/ # Node.js + Express backend
 │ ├── node_modules/
@@ -61,7 +61,7 @@ hackops/
 ├── .env.example # Example environment variables
 ├── .gitignore
 └── README.md
-
+```
 ---
 
 ## ⚙️ Setup
@@ -90,7 +90,7 @@ cp .env.example.env
 
 And fill with necessary keys.
 
-**Running locally**
+### **Running locally**
 
 Backend
 
@@ -110,9 +110,9 @@ npm run dev
 
 ## Deployment
 
-Frontend: [Vercel](https://vercel.com/)
-Backend: [Render](https://render.com/)
-Database & Auth: [Supabase](https://supabase.com/)
+- Frontend: [Vercel](https://vercel.com/)
+- Backend: [Render](https://render.com/)
+- Database & Auth: [Supabase](https://supabase.com/)
 
 ---
 ## 📄 License
