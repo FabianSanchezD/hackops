@@ -17,11 +17,7 @@ export default function DashboardPage() {
                 Manage your hackathon operations from one central hub.
               </p>
             </div>
-            <div className="hidden md:flex items-center gap-3">
-              <div className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
-                📊 View Analytics
-              </div>
-            </div>
+        
           </div>
         </div>
         <FeatureGrid />
