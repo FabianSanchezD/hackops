@@ -52,7 +52,7 @@ export default function Navbar() {
     }
   }
   return (
-    <div className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <div className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white">
       <div className="mx-auto max-w-7xl h-16 px-4 flex items-center justify-between">
         {/* Left: HackOps */}
         <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
