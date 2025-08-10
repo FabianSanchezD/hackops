@@ -4,12 +4,12 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import outreachRoutes from './routes/outreach.routes.js';
 import teamManagementRoutes from './routes/teamManagement.routes.js';
-import speakerJuryManagementRoutes from './routes/speakerJuryManagement.routes.js';
 import growthRoutes from './routes/growth.routes.js';
 import trackCreationRoutes from './routes/trackCreation.routes.js';
 import liveSupportRoutes from './routes/liveSupport.routes.js';
 import partnershipsRoutes from './routes/partnerships.routes.js';
 import growthImagesRoutes from './routes/growthImages.routes.js';
+import challengeTracksRoutes from './routes/challengeTracks.routes.js';
 import trackingRoutes from './routes/tracking.routes.js';
 import todosAgendaRoutes from './routes/todosAgenda.routes.js';
 import swaggerUi from 'swagger-ui-express';
@@ -33,6 +33,8 @@ app.use(cors({
     origin: [
         'http://localhost:3000',
         'https://localhost:3000',
+        'http://localhost:3001',
+        'https://localhost:3001',
     ],
     credentials: true
 }));
@@ -47,13 +49,13 @@ app.use('/media', express.static(path.join(__dirname, 'media')));
 // Routes
 app.use('/outreach', outreachRoutes);
 app.use('/team-management', teamManagementRoutes);
-app.use('/speaker-jury-management', speakerJuryManagementRoutes);
 app.use('/growth', growthRoutes);
 app.use('/auth', authRoutes);
 app.use('/track-creation', trackCreationRoutes);
 app.use('/live-support', liveSupportRoutes);
 app.use('/partnerships', partnershipsRoutes);
 app.use('/growth-images', growthImagesRoutes);
+app.use('/challenge-tracks', challengeTracksRoutes);
 app.use('/tracking', trackingRoutes);
 app.use('/todos-agenda', todosAgendaRoutes);
 
