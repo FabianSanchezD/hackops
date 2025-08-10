@@ -3,6 +3,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import Image from 'next/image';
 import GrowthNavbar from '../../../components/dashboard/GrowthNavbar';
+import { API_BASE } from '../../../lib/api';
 import Button from '../../../components/ui/button';
 import { Card, CardContent } from '../../../components/ui/card';
 
@@ -64,7 +65,7 @@ export default function GrowthPage() {
     const [saving, setSaving] = useState(false);
     const [myImages, setMyImages] = useState<GrowthImage[]>([]);
 
-    const API_URL = useMemo(() => process.env.NEXT_PUBLIC_API_URL, []);
+    const API_URL = useMemo(() => process.env.NEXT_PUBLIC_API_URL || API_BASE, []);
 
     const ensureApi = () => {
         if (!API_URL) {

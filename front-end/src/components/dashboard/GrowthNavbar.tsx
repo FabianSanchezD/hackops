@@ -5,6 +5,7 @@ import Image from "next/image";
 import Button from "../ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { apiFetch, API_BASE } from "../../lib/api";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +17,6 @@ import { ChevronDown, Settings, Plus, Settings2, LogOut } from "lucide-react";
 
 export default function GrowthNavbar() {
   const router = useRouter();
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
   const [userEmail, setUserEmail] = React.useState<string | null>(null);
   const [loadingUser, setLoadingUser] = React.useState(true);
   const [loggingOut, setLoggingOut] = React.useState(false);
@@ -26,7 +26,7 @@ export default function GrowthNavbar() {
     let isMounted = true;
     async function loadUser() {
       try {
-        const res = await fetch(`${API_BASE}/auth/me`, { credentials: "include" });
+  const res = await apiFetch('/auth/me');
         if (res.ok) {
           const data = await res.json();
           if (isMounted) setUserEmail(data?.user?.email ?? null);
@@ -44,7 +44,7 @@ export default function GrowthNavbar() {
   async function onLogout() {
     try {
       setLoggingOut(true);
-      await fetch(`${API_BASE}/auth/logout`, { method: "POST", credentials: "include" });
+  await apiFetch('/auth/logout', { method: 'POST' });
     } catch {
       // ignore
     } finally {

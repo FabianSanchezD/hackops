@@ -12,8 +12,8 @@ function setAuthCookies(res, session) {
   if (access) {
     res.cookie(COOKIE_NAME, access, {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      secure: true, // required for SameSite=None on modern browsers
+      sameSite: 'none', // allow cross-site requests from Vercel to Render
       maxAge: 60 * 60 * 24 * 7,
       path: '/',
       domain: undefined,
@@ -22,8 +22,8 @@ function setAuthCookies(res, session) {
   if (refresh) {
     res.cookie('sb-refresh-token', refresh, {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 60 * 60 * 24 * 30,
       path: '/',
       domain: undefined,

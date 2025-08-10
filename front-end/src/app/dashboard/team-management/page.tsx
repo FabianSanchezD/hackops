@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { API_BASE } from "../../../lib/api";
 import GrowthNavbar from "../../../components/dashboard/GrowthNavbar";
 import Button from "../../../components/ui/button";
 
@@ -13,7 +14,6 @@ type TeamMember = {
 };
 
 export default function TeamManagementPage() {
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
   const [rows, setRows] = React.useState<TeamMember[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
