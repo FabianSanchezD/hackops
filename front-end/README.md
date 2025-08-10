@@ -1,9 +1,36 @@
+# 🌐 HackOps – Frontend
 
-## Environment
+This is the **Next.js** web app for HackOps.  
+It provides the user interface for hackathon management, team building, and live support.
 
-Set the API base URL so the frontend talks to your backend:
+---
 
-- Local development: `NEXT_PUBLIC_API_URL=http://localhost:5000`
-- Production (Vercel): `NEXT_PUBLIC_API_URL=https://hackops.onrender.com`
+## ⚙️ Setup
 
-Define this in your Vercel Project Settings → Environment Variables, and locally in the repo root `.env` which is already loaded by the frontend config.
+**1. Install dependencies**
+```bash
+npm install
+```
+
+**2. Create `.env.local` file**
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://<your-project>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon_key>
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
+**3. Run in development**
+```bash
+npm run dev
+```
+Frontend will be available at:  
+```
+http://localhost:3000
+```
+
+---
+
+## 📦 Tech Stack
+- Next.js
+- TailwindCSS + shadcn/ui
+- Supabase
