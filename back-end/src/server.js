@@ -13,6 +13,7 @@ import trackingRoutes from './routes/tracking.routes.js';
 import todosAgendaRoutes from './routes/todosAgenda.routes.js';
 import swaggerUi from 'swagger-ui-express';
 import openapiSpec from './openapi.js';
+import cors from 'cors';
 
 // Get the directory name for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -24,6 +25,14 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 const app = express();
 
 // Middleware
+app.use(cors({
+    // TODO: add vercel front-end here (when deployed)
+    origin: [
+        'http://localhost:3000',
+        'https://localhost:3000',
+    ],
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
