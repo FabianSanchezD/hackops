@@ -32,6 +32,12 @@ const ThreeDotsLoader = ({ text = "Generating" }: { text?: string }) => {
 interface Challenge { title: string; description: string }
 interface Track { name: string; objective: string; challenges: Challenge[] }
 interface IdeasResponse { tracks: Track[] }
+interface ItemInfo {
+	meta?: { theme?: string; audience?: string; durationDays?: number; tracksCount?: number; challengesPerTrack?: number };
+	tracks: Track[];
+	storage?: { bucket?: string; path?: string; publicUrl?: string };
+}
+interface ChallengeTracksItem { id: number | string; created_at: string | null; prompt: string; created_by: string; info: ItemInfo }
 
 export default function TrackCreationPage() {
 	const [theme, setTheme] = useState("");
@@ -42,6 +48,9 @@ export default function TrackCreationPage() {
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [ideas, setIdeas] = useState<IdeasResponse | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [myTracks, setMyTracks] = useState<ChallengeTracksItem[]>([]);
+	const [tracksLoading, setTracksLoading] = useState(false);
+	const [tracksError, setTracksError] = useState<string | null>(null);
 
 	const API_URL = useMemo(() => process.env.NEXT_PUBLIC_API_URL, []);
 
@@ -67,20 +76,47 @@ export default function TrackCreationPage() {
 				tracksCount: parseInt(tracksCount || '') || 4,
 				challengesPerTrack: parseInt(challengesPerTrack || '') || 3,
 			};
-			const res = await fetch(`${API_URL}/track-creation/ai-ideas`, {
+			// Save-and-generate in one step using the backend route that persists
+			const res = await fetch(`${API_URL}/challenge-tracks`, {
 				method: 'POST',
+				credentials: 'include',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(payload)
 			});
 			const data = await res.json();
-			if (!res.ok) throw new Error(data?.error || 'Failed to generate ideas');
-			setIdeas(data.ideas as IdeasResponse);
+			if (!res.ok) throw new Error(data?.error || 'Failed to generate & save');
+			const tracks = (data?.item?.info?.tracks || []) as Track[];
+			setIdeas({ tracks });
+			// refresh saved list
+			await loadMyTracks();
 		} catch (e: any) {
 			setError(e?.message || 'Unexpected error');
 		} finally {
 			setIsGenerating(false);
 		}
 	};
+
+	const loadMyTracks = async () => {
+		if (!ensureApi()) return;
+		setTracksLoading(true);
+		setTracksError(null);
+		try {
+			const res = await fetch(`${API_URL}/challenge-tracks`, { credentials: 'include' });
+			const data = (await res.json()) as { items?: ChallengeTracksItem[]; error?: string };
+			if (!res.ok) throw new Error(data?.error || `Failed to load (${res.status})`);
+			setMyTracks(Array.isArray(data.items) ? data.items : []);
+		} catch (e) {
+			const msg = e instanceof Error ? e.message : 'Failed to load tracks';
+			setTracksError(msg);
+		} finally {
+			setTracksLoading(false);
+		}
+	};
+
+	useEffect(() => {
+		loadMyTracks();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [API_URL]);
 
 	const clear = () => {
 		setIdeas(null);
@@ -91,6 +127,8 @@ export default function TrackCreationPage() {
 		setTracksCount("");
 		setChallengesPerTrack("");
 	};
+
+	// removed separate save button; Generate Ideas now saves
 
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-[#0a174e] via-[#1e40af] to-[#3b82f6]">
@@ -214,8 +252,60 @@ export default function TrackCreationPage() {
 							</div>
 						</div>
 					)}
+
 				</div>
 			</main>
+
+			{/* My Tracks (saved) - separate full-width card, similar to Growth page */}
+			<section className="mx-auto max-w-6xl px-6 pb-16">
+				<div className="w-full bg-white/95 backdrop-blur border border-white/20 rounded-2xl p-6 shadow-2xl">
+					<h2 className="text-2xl font-bold text-[#0a174e] mb-4">My Tracks</h2>
+					<div className="flex items-center justify-between mb-2">
+						<span className="text-neutral-600 text-sm">Your saved track sets</span>
+						<button onClick={loadMyTracks} disabled={tracksLoading} className="px-4 py-2 rounded-lg bg-white text-[#1e40af] border border-[#1e40af]/40 hover:bg-[#f3f7ff] transition-colors disabled:opacity-60">
+							{tracksLoading ? 'Refreshing…' : 'Refresh'}
+						</button>
+					</div>
+					{tracksError && <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">{tracksError}</div>}
+					{myTracks.length === 0 ? (
+						<p className="text-neutral-700">No tracks yet. Use Track Creation to generate and save them.</p>
+					) : (
+						<div className="space-y-6">
+							{myTracks.map((item) => (
+								<div key={item.id} className="bg-white rounded-xl border border-neutral-200 p-4 shadow">
+									<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-3">
+										<div>
+											<div className="text-sm text-neutral-500">{item.created_at ? new Date(item.created_at).toLocaleString() : ''}</div>
+											<div className="text-neutral-800 font-medium">{item.info?.meta?.theme || item.prompt}</div>
+										</div>
+										{item.info?.storage?.publicUrl && (
+											<a className="text-sm text-[#1e40af] hover:underline" href={item.info.storage.publicUrl} target="_blank" rel="noreferrer">View JSON</a>
+										)}
+									</div>
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+										{Array.isArray(item.info?.tracks) && item.info.tracks.map((t, idx) => (
+											<div key={idx} className="border border-neutral-200 rounded-lg p-3">
+												<div className="font-semibold text-neutral-900">{t.name}</div>
+												<div className="text-sm text-neutral-700 mb-2">{t.objective}</div>
+												{Array.isArray(t.challenges) && t.challenges.length > 0 && (
+													<ul className="list-disc pl-5 space-y-1 text-sm text-neutral-800">
+														{t.challenges.map((c, i) => (
+															<li key={i}>
+																<span className="font-medium">{c.title}</span>
+																{c.description ? ` — ${c.description}` : ''}
+															</li>
+														))}
+													</ul>
+												)}
+										</div>
+										))}
+									</div>
+								</div>
+							))}
+						</div>
+					)}
+				</div>
+			</section>
 		</div>
 	);
 }
