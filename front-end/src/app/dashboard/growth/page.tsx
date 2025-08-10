@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Image from 'next/image';
 import Navbar from '../../../components/dashboard/Navbar';
 import Button from '../../../components/ui/button';
 import { Card, CardContent } from '../../../components/ui/card';
@@ -25,6 +26,7 @@ export default function GrowthPage() {
     const [generatedPost, setGeneratedPost] = useState<PostResponse | null>(null);
     const [generatedDescription, setGeneratedDescription] = useState<DescriptionResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [showShareOverlay, setShowShareOverlay] = useState(false);
 
     const API_URL = useMemo(() => process.env.NEXT_PUBLIC_API_URL, []);
 
@@ -112,13 +114,69 @@ export default function GrowthPage() {
             }
         };
 
-    const shareToSocialMedia = () => {
-        if (generatedDescription) {
-            // TODO: Change this to another social media
-            const text = encodeURIComponent(generatedDescription.description);
-            const url = `https://twitter.com/intent/tweet?text=${text}`;
-            window.open(url, '_blank');
+    // Sharing helpers
+    const shareData = () => {
+        const text = generatedDescription?.description || '';
+        const url = generatedPost?.image || '';
+        return { text, url };
+    };
+
+    const shareNative = async () => {
+        const { text, url } = shareData();
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: 'HackOps', text, url: url || undefined });
+            } catch { /* canceled */ }
+        } else {
+            shareToX();
         }
+    };
+
+    const openShare = (u: string) => window.open(u, '_blank');
+
+    const shareToX = () => {
+        const { text, url } = shareData();
+        const link = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}${url ? `&url=${encodeURIComponent(url)}` : ''}`;
+        openShare(link);
+    };
+
+    const shareToLinkedIn = () => {
+        const { url } = shareData();
+        const link = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url || 'https://hackops.app')}`;
+        openShare(link);
+    };
+
+    const shareToFacebook = () => {
+        const { text, url } = shareData();
+        const link = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url || 'https://hackops.app')}&quote=${encodeURIComponent(text)}`;
+        openShare(link);
+    };
+
+    const shareToReddit = () => {
+        const { text, url } = shareData();
+        const link = `https://www.reddit.com/submit?url=${encodeURIComponent(url || 'https://hackops.app')}&title=${encodeURIComponent(text.slice(0, 300))}`;
+        openShare(link);
+    };
+
+    const shareToWhatsApp = () => {
+        const { text, url } = shareData();
+        const payload = `${text}${url ? ` ${url}` : ''}`;
+        const link = `https://wa.me/?text=${encodeURIComponent(payload)}`;
+        openShare(link);
+    };
+
+    const shareToTelegram = () => {
+        const { text, url } = shareData();
+        const link = `https://t.me/share/url?url=${encodeURIComponent(url || '')}&text=${encodeURIComponent(text)}`;
+        openShare(link);
+    };
+
+    const shareToDiscord = () => {
+        const { text, url } = shareData();
+        // Discord doesn't have a direct share URL, so we'll copy to clipboard with a message
+        const payload = `${text}${url ? ` ${url}` : ''}`;
+        navigator.clipboard.writeText(payload);
+        alert('Content copied to clipboard! You can now paste it in Discord.');
     };
 
         return (
@@ -172,18 +230,100 @@ export default function GrowthPage() {
                                         <img src={generatedPost.image} alt="Generated post" className="w-full max-w-md rounded-lg shadow mb-4" />
                                     </a>
                                     <p className="text-neutral-800 text-center leading-relaxed whitespace-pre-wrap">{generatedDescription.description}</p>
-                                    <div className="flex flex-col sm:flex-row gap-3 mt-5">
-                                        <Button onClick={shareToSocialMedia}>Share on Social Media</Button>
-                                        <Button
-                                            variant="secondary"
-                                            onClick={() => navigator.clipboard.writeText(generatedDescription.description)}
+                                    <div className="flex items-center justify-center mt-5">
+                                        <Button 
+                                            onClick={() => setShowShareOverlay(true)}
+                                            className="px-8 py-2 min-w-[140px]"
                                         >
-                                            Copy Description
+                                            Share
                                         </Button>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
+                    )}
+
+                    {/* Share Overlay */}
+                    {showShareOverlay && (
+                        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                            <Card className="w-full max-w-md border-neutral-200 shadow-lg">
+                                <CardContent className="p-6">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-lg font-semibold text-[#1e40af]">Share Post</h3>
+                                        <button
+                                            onClick={() => setShowShareOverlay(false)}
+                                            className="text-neutral-500 hover:text-neutral-700 transition-colors"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                    <div className="border-t border-neutral-200 mb-4"></div>
+                                    <div className="space-y-2">
+                                        <button
+                                            onClick={() => { shareToX(); setShowShareOverlay(false); }}
+                                            className="w-full flex items-center gap-3 text-left px-4 py-3 rounded-md hover:bg-neutral-50 transition-all duration-200 hover:scale-[1.02] hover:shadow-md transform"
+                                        >
+                                            <Image src="/icons/x.svg" alt="X" width={20} height={20} className="drop-shadow-md" />
+                                            X / Twitter
+                                        </button>
+                                        <button
+                                            onClick={() => { shareToLinkedIn(); setShowShareOverlay(false); }}
+                                            className="w-full flex items-center gap-3 text-left px-4 py-3 rounded-md hover:bg-neutral-50 transition-all duration-200 hover:scale-[1.02] hover:shadow-md transform"
+                                        >
+                                            <Image src="/icons/linkedin.svg" alt="LinkedIn" width={20} height={20} className="drop-shadow-md" />
+                                            LinkedIn
+                                        </button>
+                                        <button
+                                            onClick={() => { shareToFacebook(); setShowShareOverlay(false); }}
+                                            className="w-full flex items-center gap-3 text-left px-4 py-3 rounded-md hover:bg-neutral-50 transition-all duration-200 hover:scale-[1.02] hover:shadow-md transform"
+                                        >
+                                            <Image src="/icons/facebook.svg" alt="Facebook" width={20} height={20} className="drop-shadow-md" />
+                                            Facebook
+                                        </button>
+                                        <button
+                                            onClick={() => { shareToDiscord(); setShowShareOverlay(false); }}
+                                            className="w-full flex items-center gap-3 text-left px-4 py-3 rounded-md hover:bg-neutral-50 transition-all duration-200 hover:scale-[1.02] hover:shadow-md transform"
+                                        >
+                                            <Image src="/icons/discord.svg" alt="Discord" width={20} height={20} className="drop-shadow-md" />
+                                            Discord
+                                        </button>
+                                        <button
+                                            onClick={() => { shareToReddit(); setShowShareOverlay(false); }}
+                                            className="w-full flex items-center gap-3 text-left px-4 py-3 rounded-md hover:bg-neutral-50 transition-all duration-200 hover:scale-[1.02] hover:shadow-md transform"
+                                        >
+                                            <Image src="/icons/reddit.svg" alt="Reddit" width={20} height={20} className="drop-shadow-md" />
+                                            Reddit
+                                        </button>
+                                        <button
+                                            onClick={() => { shareToWhatsApp(); setShowShareOverlay(false); }}
+                                            className="w-full flex items-center gap-3 text-left px-4 py-3 rounded-md hover:bg-neutral-50 transition-all duration-200 hover:scale-[1.02] hover:shadow-md transform"
+                                        >
+                                            <Image src="/icons/whatsapp.svg" alt="WhatsApp" width={20} height={20} className="drop-shadow-md" />
+                                            WhatsApp
+                                        </button>
+                                        <button
+                                            onClick={() => { shareToTelegram(); setShowShareOverlay(false); }}
+                                            className="w-full flex items-center gap-3 text-left px-4 py-3 rounded-md hover:bg-neutral-50 transition-all duration-200 hover:scale-[1.02] hover:shadow-md transform"
+                                        >
+                                            <Image src="/icons/telegram.svg" alt="Telegram" width={20} height={20} className="drop-shadow-md" />
+                                            Telegram
+                                        </button>
+                                        <div className="border-t border-neutral-200 my-2"></div>
+                                        <button
+                                            onClick={() => { 
+                                                if (generatedDescription) {
+                                                    navigator.clipboard.writeText(generatedDescription.description); 
+                                                }
+                                                setShowShareOverlay(false); 
+                                            }}
+                                            className="w-full flex items-center gap-3 text-left px-4 py-3 rounded-md hover:bg-neutral-50 transition-all duration-200 hover:scale-[1.02] hover:shadow-md transform"
+                                        >
+                                            📋 Copy Description
+                                        </button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
                     )}
                 </main>
             </div>
