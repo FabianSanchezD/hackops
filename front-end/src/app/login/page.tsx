@@ -29,7 +29,9 @@ export default function LoginPage() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data?.error || "Login failed");
       }
-      router.push("/dashboard");
+  // Set a lightweight front-end cookie so Vercel middleware can gate routes
+  document.cookie = `fe-auth=1; path=/; max-age=${60 * 60 * 24 * 7}`;
+  router.push("/dashboard");
     } catch (err: any) {
       setError(err.message || "Login failed");
     } finally {

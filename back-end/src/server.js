@@ -26,6 +26,8 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 const app = express();
+// Render is behind a proxy; this is required for secure cookies with SameSite=None
+app.set('trust proxy', 1);
 
 // Middleware
 const corsOrigins = [
@@ -36,6 +38,7 @@ const corsOrigins = [
     'https://hackops-nu.vercel.app',
 ];
 
+app.use((req, res, next) => { res.header('Vary', 'Origin'); next(); });
 app.use(cors({
     origin: (origin, callback) => {
         if (!origin) return callback(null, true); // allow non-browser tools
@@ -47,7 +50,17 @@ app.use(cors({
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Prefer', 'Range', 'apikey', 'x-client-info', 'x-requested-with'],
+}));
+app.options('*', cors({
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (corsOrigins.includes(origin)) return callback(null, true);
+        const vercelPreview = /^https:\/\/hackops-nu-[a-z0-9-]+\.vercel\.app$/i;
+        if (vercelPreview.test(origin)) return callback(null, true);
+        return callback(new Error(`CORS: Origin not allowed: ${origin}`));
+    },
+    credentials: true,
 }));
 
 app.use(express.json());

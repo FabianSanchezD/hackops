@@ -63,8 +63,9 @@ router.post('/signup', async (req, res) => {
 });
 
 router.post('/logout', async (_req, res) => {
-  res.clearCookie(COOKIE_NAME, { path: '/' });
-  res.clearCookie('sb-refresh-token', { path: '/' });
+  const baseOpts = { path: '/', sameSite: 'none', secure: true };
+  res.clearCookie(COOKIE_NAME, baseOpts);
+  res.clearCookie('sb-refresh-token', baseOpts);
   return res.json({ ok: true });
 });
 

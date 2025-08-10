@@ -48,6 +48,8 @@ export default function GrowthNavbar() {
     } catch {
       // ignore
     } finally {
+  // Remove the front-end marker cookie used by middleware
+  document.cookie = 'fe-auth=; Max-Age=0; path=/';
       setLoggingOut(false);
       router.push("/login");
     }
