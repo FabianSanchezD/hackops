@@ -10,11 +10,11 @@ interface Track { name: string; objective: string; challenges: Challenge[] }
 interface IdeasResponse { tracks: Track[] }
 
 export default function TrackCreationPage() {
-	const [theme, setTheme] = useState("AI for Social Good");
-	const [audience, setAudience] = useState("students and professionals");
-	const [durationDays, setDurationDays] = useState(2);
-	const [tracksCount, setTracksCount] = useState(4);
-	const [challengesPerTrack, setChallengesPerTrack] = useState(3);
+	const [theme, setTheme] = useState("");
+	const [audience, setAudience] = useState("");
+	const [durationDays, setDurationDays] = useState<string>("2");
+	const [tracksCount, setTracksCount] = useState<string>("4");
+	const [challengesPerTrack, setChallengesPerTrack] = useState<string>("3");
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [ideas, setIdeas] = useState<IdeasResponse | null>(null);
 	const [error, setError] = useState<string | null>(null);
@@ -36,10 +36,17 @@ export default function TrackCreationPage() {
 		setError(null);
 		setIdeas(null);
 		try {
+			const payload = {
+				theme: theme.trim() || undefined,
+				audience: audience.trim() || undefined,
+				durationDays: parseInt(durationDays || '') || 2,
+				tracksCount: parseInt(tracksCount || '') || 4,
+				challengesPerTrack: parseInt(challengesPerTrack || '') || 3,
+			};
 			const res = await fetch(`${API_URL}/track-creation/ai-ideas`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ theme, audience, durationDays, tracksCount, challengesPerTrack })
+				body: JSON.stringify(payload)
 			});
 			const data = await res.json();
 			if (!res.ok) throw new Error(data?.error || 'Failed to generate ideas');
@@ -54,6 +61,11 @@ export default function TrackCreationPage() {
 	const clear = () => {
 		setIdeas(null);
 		setError(null);
+		setTheme("");
+		setAudience("");
+		setDurationDays("");
+		setTracksCount("");
+		setChallengesPerTrack("");
 	};
 
 	return (
@@ -71,23 +83,23 @@ export default function TrackCreationPage() {
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div>
 								<label className="block text-sm font-medium text-neutral-700 mb-2">Theme</label>
-								<input className="w-full p-3 border border-neutral-300 rounded-md focus:ring-2 focus:ring-[#1e40af]/70 focus:border-transparent" value={theme} onChange={e => setTheme(e.target.value)} placeholder="e.g., AI for Social Good" />
+								<input className="w-full p-3 border border-neutral-300 rounded-md focus:ring-2 focus:ring-[#1e40af]/70 focus:border-transparent placeholder:text-neutral-400" value={theme} onChange={e => setTheme(e.target.value)} placeholder="AI for Social Good" />
 							</div>
 							<div>
 								<label className="block text-sm font-medium text-neutral-700 mb-2">Audience</label>
-								<input className="w-full p-3 border border-neutral-300 rounded-md focus:ring-2 focus:ring-[#1e40af]/70 focus:border-transparent" value={audience} onChange={e => setAudience(e.target.value)} placeholder="e.g., students and developers" />
+								<input className="w-full p-3 border border-neutral-300 rounded-md focus:ring-2 focus:ring-[#1e40af]/70 focus:border-transparent placeholder:text-neutral-400" value={audience} onChange={e => setAudience(e.target.value)} placeholder="students and developers" />
 							</div>
 							<div>
 								<label className="block text-sm font-medium text-neutral-700 mb-2">Duration (days)</label>
-								<input className="w-full p-3 border border-neutral-300 rounded-md focus:ring-2 focus:ring-[#1e40af]/70 focus:border-transparent" type="number" min={1} value={durationDays} onChange={e => setDurationDays(parseInt(e.target.value || '0'))} />
+								<input className="w-full p-3 border border-neutral-300 rounded-md focus:ring-2 focus:ring-[#1e40af]/70 focus:border-transparent" type="number" min={1} step={1} value={durationDays} onChange={e => setDurationDays(e.target.value)} />
 							</div>
 							<div>
 								<label className="block text-sm font-medium text-neutral-700 mb-2"># Tracks</label>
-								<input className="w-full p-3 border border-neutral-300 rounded-md focus:ring-2 focus:ring-[#1e40af]/70 focus:border-transparent" type="number" min={1} value={tracksCount} onChange={e => setTracksCount(parseInt(e.target.value || '0'))} />
+								<input className="w-full p-3 border border-neutral-300 rounded-md focus:ring-2 focus:ring-[#1e40af]/70 focus:border-transparent" type="number" min={1} step={1} value={tracksCount} onChange={e => setTracksCount(e.target.value)} />
 							</div>
 							<div className="md:col-span-2">
 								<label className="block text-sm font-medium text-neutral-700 mb-2"># Challenges per Track</label>
-								<input className="w-full p-3 border border-neutral-300 rounded-md focus:ring-2 focus:ring-[#1e40af]/70 focus:border-transparent" type="number" min={1} value={challengesPerTrack} onChange={e => setChallengesPerTrack(parseInt(e.target.value || '0'))} />
+								<input className="w-full p-3 border border-neutral-300 rounded-md focus:ring-2 focus:ring-[#1e40af]/70 focus:border-transparent" type="number" min={1} step={1} value={challengesPerTrack} onChange={e => setChallengesPerTrack(e.target.value)} />
 							</div>
 						</div>
 
