@@ -3,6 +3,7 @@
 HackOps is a platform for **organizing, managing, and scaling hackathons**.  
 It streamlines track management, team building, live support, growth, and communications, all in one place.
 
+> **⚠️ Note:** It is **NOT** required to verify email in the deployed application.
 ---
 
 ## 📖 Overview
