@@ -1,0 +1,9 @@
+{
+  "name": "hackops-root",
+  "private": true,
+  "scripts": {
+    "install": "npm --prefix back-end ci",
+    "build": "npm --prefix back-end run build",
+    "start": "npm --prefix back-end run start"
+  }
+}
