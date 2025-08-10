@@ -34,7 +34,7 @@ const Navbar: React.FC = () => {
 					<li><a href="#get-access" className="hover:text-blue-300 transition">Get Access</a></li>
 					<li>
 						<a href="/login" className="ml-2 inline-flex items-center rounded-md px-3 py-1.5 text-sm font-semibold bg-white text-[#0a174e] hover:bg-blue-50 transition">
-							for the hackathon viewers
+							For the hackathon viewers
 						</a>
 					</li>
 				</ul>

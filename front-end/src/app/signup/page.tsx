@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -17,21 +18,24 @@ export default function LoginPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    setMessage(null);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
+      const res = await fetch(`${API_BASE}/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ email, password }),
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error || "Login failed");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || "Signup failed");
+      if (data?.needsVerification) {
+        setMessage("Check your email to verify your account, then sign in.");
+      } else {
+        router.push("/dashboard");
       }
-      router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Login failed");
+      setError(err.message || "Signup failed");
     } finally {
       setLoading(false);
     }
@@ -52,9 +56,15 @@ export default function LoginPage() {
             />
             <span className="text-3xl font-bold text-[#0a174e]">HackOps</span>
           </div>
-          <h1 className="text-2xl font-semibold text-neutral-900 mb-2">Welcome back</h1>
-          <p className="text-sm text-neutral-600">For the hackathon viewers</p>
+          <h1 className="text-2xl font-semibold text-neutral-900 mb-2">Create account</h1>
+          <p className="text-sm text-neutral-600">Join HackOps to manage your event</p>
         </div>
+        {message && (
+          <div className="mb-6 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            {message}
+          </div>
+        )}
         {error && (
           <div className="mb-6 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2">
             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
@@ -80,8 +90,9 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full border border-neutral-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1e40af] focus:border-transparent transition-all duration-200 bg-white/50"
-              placeholder="Enter your password"
+              placeholder="Minimum 6 characters"
               required
+              minLength={6}
             />
           </div>
           <button
@@ -92,18 +103,18 @@ export default function LoginPage() {
             {loading ? (
               <div className="flex items-center justify-center gap-2">
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                Signing in…
+                Creating account…
               </div>
             ) : (
-              "Sign in"
+              "Create account"
             )}
           </button>
         </form>
         <div className="mt-6 pt-6 border-t border-neutral-200">
           <p className="text-center text-sm text-neutral-600">
-            Don't have an account?{" "}
-            <Link href="/signup" className="text-[#1e40af] hover:text-[#3b82f6] font-medium hover:underline transition-colors">
-              Sign up
+            Already have an account?{" "}
+            <Link href="/login" className="text-[#1e40af] hover:text-[#3b82f6] font-medium hover:underline transition-colors">
+              Sign in
             </Link>
           </p>
         </div>
