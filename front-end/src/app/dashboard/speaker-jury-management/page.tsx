@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import Navbar from "../../../components/dashboard/Navbar";
-import { Card, CardContent } from "../../../components/ui/card";
+import GrowthNavbar from "../../../components/dashboard/GrowthNavbar";
 import Button from "../../../components/ui/button";
 
 type Person = {
@@ -147,80 +146,77 @@ export default function SpeakerJuryManagementPage() {
   const speakerEmails = React.useMemo(()=> speakers.filter(r=>speakerSelected.includes(r.id)).map(r=>r.email).filter(Boolean) as string[], [speakers, speakerSelected]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-blue-50">
-      <Navbar />
-      <main className="mx-auto max-w-5xl px-4 py-6 md:py-10">
-        <Card className="border-neutral-200 shadow-sm">
-          <CardContent className="p-5 md:py-7 md:px-6">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl md:text-3xl font-bold text-[#1e40af]">Speakers & Jury</h1>
-              <div className="flex gap-2">
-                <Button variant="secondary" onClick={()=>setShowAddJury(true)}>Add Jury</Button>
-                <Button onClick={()=>setShowAddSpeaker(true)}>Add Speaker</Button>
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a174e] via-[#1e40af] to-[#3b82f6]">
+      <GrowthNavbar />
+      <main className="flex flex-col items-center gap-6 p-6 pt-20">
+        <div className="w-full max-w-5xl bg-white/95 backdrop-blur border border-white/20 rounded-2xl p-8 shadow-2xl">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold text-[#0a174e]">Speakers & Jury</h1>
+            <div className="flex gap-2">
+              <Button variant="secondary" size="md" onClick={()=>setShowAddJury(true)}>Add Jury</Button>
+              <Button variant="secondary" size="md" onClick={()=>setShowAddSpeaker(true)}>Add Speaker</Button>
             </div>
+          </div>
 
-            {toast && <div className="text-sm mb-2 text-neutral-700">{toast}</div>}
+          {toast && <div className="text-sm mb-3 text-neutral-700">{toast}</div>}
 
-            {/* Jury table */}
-            <h2 className="text-xl font-semibold text-[#1e40af] mb-2">Jury</h2>
-            <Table
-              rows={juryRows}
-              allPageSelected={juryAllSelected}
-              onToggleAll={(checked)=>{
-                setJurySelected(prev=> checked ? Array.from(new Set([...prev, ...juryRows.map(r=>r.id)])) : prev.filter(id => !juryRows.find(r=>r.id===id)));
-              }}
-              selectedIds={jurySelected}
-              setSelectedIds={setJurySelected}
-            />
-            <Pager page={juryPage} totalPages={juryTotalPages} onPrev={()=>setJuryPage(p=>Math.max(1,p-1))} onNext={()=>setJuryPage(p=>Math.min(juryTotalPages,p+1))} />
+          {/* Jury table */}
+          <h2 className="text-xl font-semibold text-[#0a174e] mb-2">Jury</h2>
+          <Table
+            rows={juryRows}
+            allPageSelected={juryAllSelected}
+            onToggleAll={(checked)=>{
+              setJurySelected(prev=> checked ? Array.from(new Set([...prev, ...juryRows.map(r=>r.id)])) : prev.filter(id => !juryRows.find(r=>r.id===id)));
+            }}
+            selectedIds={jurySelected}
+            setSelectedIds={setJurySelected}
+          />
+          <Pager page={juryPage} totalPages={juryTotalPages} onPrev={()=>setJuryPage(p=>Math.max(1,p-1))} onNext={()=>setJuryPage(p=>Math.min(juryTotalPages,p+1))} />
 
-            {/* Speakers table */}
-            <h2 className="text-xl font-semibold text-[#1e40af] mt-8 mb-2">Speakers</h2>
-            <Table
-              rows={speakerRows}
-              allPageSelected={speakersAllSelected}
-              onToggleAll={(checked)=>{
-                setSpeakerSelected(prev=> checked ? Array.from(new Set([...prev, ...speakerRows.map(r=>r.id)])) : prev.filter(id => !speakerRows.find(r=>r.id===id)));
-              }}
-              selectedIds={speakerSelected}
-              setSelectedIds={setSpeakerSelected}
-            />
-            <Pager page={speakerPage} totalPages={speakerTotalPages} onPrev={()=>setSpeakerPage(p=>Math.max(1,p-1))} onNext={()=>setSpeakerPage(p=>Math.min(speakerTotalPages,p+1))} />
-
-            {/* Composer */}
-            <div className="bg-white border border-neutral-200 rounded-lg p-4 mt-6">
-              <h2 className="text-lg font-semibold text-[#1e40af] mb-3">Compose Email</h2>
-              <div className="mb-3">
-                <label className="block text-xs font-medium text-neutral-600 mb-1">Ask AI for subject and message</label>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input className="flex-1 border border-neutral-300 rounded-md px-3 py-2" placeholder="e.g., invite to speak/judge" value={aiPrompt} onChange={(e)=>setAiPrompt(e.target.value)} />
-                  <Button onClick={askAi} disabled={aiLoading}>{aiLoading? 'Thinking…':'Ask AI'}</Button>
-                </div>
-              </div>
-              <div className="flex flex-col md:flex-row gap-3 mb-3">
-                <div className="md:w-1/2">
-                  <label className="block text-xs font-medium text-neutral-600 mb-1">Subject</label>
-                  <input className="w-full border border-neutral-300 rounded-md px-3 py-2" value={subject} onChange={(e)=>setSubject(e.target.value)} />
-                </div>
-                <div className="md:w-1/2">
-                  <label className="block text-xs font-medium text-neutral-600 mb-1">Message</label>
-                  <textarea className="w-full min-h-[120px] border border-neutral-300 rounded-md px-3 py-2" value={body} onChange={(e)=>setBody(e.target.value)} />
-                </div>
-              </div>
-              <div className="flex gap-2 justify-end">
-                <Button variant="secondary" disabled={sending || juryEmails.length===0 && speakerEmails.length===0} onClick={()=>sendBulk([...juryEmails, ...speakerEmails])}>{sending? 'Sending…':'Send to Selected'}</Button>
-              </div>
+          {/* Speakers table */}
+          <h2 className="text-xl font-semibold text-[#0a174e] mt-8 mb-2">Speakers</h2>
+          <Table
+            rows={speakerRows}
+            allPageSelected={speakersAllSelected}
+            onToggleAll={(checked)=>{
+              setSpeakerSelected(prev=> checked ? Array.from(new Set([...prev, ...speakerRows.map(r=>r.id)])) : prev.filter(id => !speakerRows.find(r=>r.id===id)));
+            }}
+            selectedIds={speakerSelected}
+            setSelectedIds={setSpeakerSelected}
+          />
+          <Pager page={speakerPage} totalPages={speakerTotalPages} onPrev={()=>setSpeakerPage(p=>Math.max(1,p-1))} onNext={()=>setSpeakerPage(p=>Math.min(speakerTotalPages,p+1))} />
+        </div>
+        {/* Compose Email in its own container */}
+        <div className="w-full max-w-5xl bg-white/95 backdrop-blur border border-white/20 rounded-2xl p-6 shadow-2xl">
+          <h2 className="text-2xl font-bold text-[#0a174e] mb-4">Compose Email</h2>
+          <div className="mb-3">
+            <label className="block text-xs font-medium text-neutral-600 mb-1">Ask AI for subject and message</label>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input className="flex-1 border border-neutral-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#1e40af]/70 focus:border-transparent" placeholder="e.g., invite to speak/judge" value={aiPrompt} onChange={(e)=>setAiPrompt(e.target.value)} />
+              <Button onClick={askAi} disabled={aiLoading}>{aiLoading? 'Thinking…':'Ask AI'}</Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="flex flex-col md:flex-row gap-3 mb-3">
+            <div className="md:w-1/2">
+              <label className="block text-xs font-medium text-neutral-600 mb-1">Subject</label>
+              <input className="w-full border border-neutral-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#1e40af]/70 focus:border-transparent" value={subject} onChange={(e)=>setSubject(e.target.value)} />
+            </div>
+            <div className="md:w-1/2">
+              <label className="block text-xs font-medium text-neutral-600 mb-1">Message</label>
+              <textarea className="w-full min-h-[120px] border border-neutral-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#1e40af]/70 focus:border-transparent" value={body} onChange={(e)=>setBody(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="secondary" disabled={sending || (juryEmails.length===0 && speakerEmails.length===0)} onClick={()=>sendBulk([...juryEmails, ...speakerEmails])}>{sending? 'Sending…':'Send to Selected'}</Button>
+          </div>
+        </div>
       </main>
 
       {/* Add modals */}
       {(showAddJury || showAddSpeaker) && (
-        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-md shadow-lg border border-neutral-200">
-            <div className="px-5 py-4 border-b border-neutral-200 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white/95 backdrop-blur rounded-2xl w-full max-w-md shadow-2xl border border-white/20">
+            <div className="px-5 py-4 border-b border-neutral-200/70 flex items-center justify-between">
               <h3 className="text-lg font-semibold">{showAddJury ? 'Add Jury' : 'Add Speaker'}</h3>
               <button className="text-neutral-500 hover:text-neutral-700" onClick={()=>{ setShowAddJury(false); setShowAddSpeaker(false); }}>✕</button>
             </div>
@@ -229,7 +225,7 @@ export default function SpeakerJuryManagementPage() {
               <input className="w-full border border-neutral-300 rounded-md px-3 py-2" placeholder="Email" value={newEmail} onChange={(e)=>setNewEmail(e.target.value)} />
               <input className="w-full border border-neutral-300 rounded-md px-3 py-2" placeholder="Phone (optional)" value={newPhone} onChange={(e)=>setNewPhone(e.target.value)} />
             </div>
-            <div className="px-5 py-4 border-t border-neutral-200 flex justify-end gap-2">
+            <div className="px-5 py-4 border-t border-neutral-200/70 flex justify-end gap-2">
               <Button variant="secondary" onClick={()=>{ setShowAddJury(false); setShowAddSpeaker(false); }}>Cancel</Button>
               <Button disabled={adding || !newName.trim() || !newEmail.trim()} onClick={()=>addEntry(showAddJury? 'jury':'speakers')}>{adding? 'Adding…':'Add'}</Button>
             </div>
@@ -242,7 +238,7 @@ export default function SpeakerJuryManagementPage() {
 
 function Table({ rows, selectedIds, setSelectedIds, allPageSelected, onToggleAll }: { rows: Person[]; selectedIds: Array<string|number>; setSelectedIds: (fn: (prev: Array<string|number>) => Array<string|number>)=>void; allPageSelected: boolean; onToggleAll: (checked: boolean)=>void; }) {
   return (
-    <div className="overflow-x-auto border border-neutral-200 rounded-lg bg-white">
+  <div className="overflow-x-auto border border-neutral-200 rounded-xl bg-white">
       <table className="min-w-full divide-y divide-neutral-200">
         <thead className="bg-neutral-50/80">
           <tr>
@@ -264,7 +260,7 @@ function Table({ rows, selectedIds, setSelectedIds, allPageSelected, onToggleAll
             </tr>
           )}
           {rows.map((r) => (
-            <tr key={r.id} className={`hover:bg-neutral-50 ${selectedIds.includes(r.id) ? 'bg-blue-50/50' : ''}`}>
+      <tr key={r.id} className={`hover:bg-neutral-50/70 transition-colors ${selectedIds.includes(r.id) ? 'bg-blue-50/50' : ''}`}>
               <td className="px-4 py-3 text-sm">
                 <input type="checkbox" checked={selectedIds.includes(r.id)} onChange={(e)=>{
                   setSelectedIds(prev => e.target.checked ? Array.from(new Set([...prev, r.id])) : prev.filter(id => id !== r.id));
@@ -283,7 +279,7 @@ function Table({ rows, selectedIds, setSelectedIds, allPageSelected, onToggleAll
 
 function Pager({ page, totalPages, onPrev, onNext }: { page: number; totalPages: number; onPrev: ()=>void; onNext: ()=>void }) {
   return (
-    <div className="flex items-center justify-between mt-3 text-sm">
+  <div className="flex items-center justify-between mt-4 text-sm">
       <div className="text-neutral-600">Page {page} of {totalPages}</div>
       <div className="flex gap-2">
         <Button variant="secondary" onClick={onPrev} disabled={page===1}>Prev</Button>
