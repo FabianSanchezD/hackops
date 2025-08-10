@@ -7,12 +7,12 @@ const Navbar: React.FC = () => {
 	return (
 		<nav className="fixed top-0 left-0 w-full z-50 bg-[#0a174e]/90 backdrop-blur border-b border-blue-900 text-white">
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-				<a href="#" className="flex items-center gap-1 font-bold text-2xl tracking-tight">
+				<a href="#" className="flex items-center gap-2 font-bold text-2xl tracking-tight">
 					<Image
-						src="/icons/hackops_logo.svg"
+						src="/icons/Hackops_Logo_White.svg"
 						alt="HackOps Logo"
-						width={32}
-						height={32}
+						width={27}
+						height={27}
 						className="object-contain"
 						priority
 					/>

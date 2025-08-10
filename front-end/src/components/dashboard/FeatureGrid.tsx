@@ -116,11 +116,6 @@ export default function FeatureGrid() {
         return (
           <Link key={index} href={feature.href} className="block group" aria-label={`${feature.title} page`}>
             <Card className="hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer border-neutral-200 hover:border-[#1e40af]/30 relative overflow-hidden">
-              <div className="absolute top-3 right-3">
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${feature.bgColor} ${feature.color} opacity-70 group-hover:opacity-100 transition-opacity`}>
-                  {feature.badge}
-                </span>
-              </div>
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className={`p-3 rounded-xl ${feature.bgColor} ${feature.hoverBg} group-hover:scale-110 transition-all duration-300 shadow-sm`}>
