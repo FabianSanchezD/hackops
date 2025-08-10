@@ -22,8 +22,8 @@ export default function Navbar() {
           <Image 
             src="/icons/HackOps_Logo.svg" 
             alt="HackOps Logo" 
-            width={27} 
-            height={27} 
+            width={27}
+            height={27}
             className="object-contain"
             priority
           />
@@ -33,12 +33,12 @@ export default function Navbar() {
         {/* Center: Hackathon dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2 text-lg font-semibold transition-colors hover:text-[#1e40af]">
+            <Button variant="ghost" className="flex items-center gap-2 text-lg font-semibold transition-colors hover:text-[#1e40af] focus:outline-none">
               {"My Hackathon"}
               <ChevronDown size={16} className="transition-transform duration-200 data-[state=open]:rotate-180" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="center" className="w-56 animate-in fade-in-0 zoom-in-95 duration-200">
+          <DropdownMenuContent align="center" className="w-56 animate-in fade-in-0 zoom-in-95 duration-200 border-0 shadow-lg">
             <DropdownMenuItem className="flex items-center gap-2 hover:bg-blue-50 focus:bg-blue-50">
               <Plus size={16} className="text-[#1e40af]" />
               Add New Hackathon
@@ -50,7 +50,7 @@ export default function Navbar() {
         <div className="flex items-center gap-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 transition-colors hover:bg-neutral-100">
+              <Button variant="ghost" className="flex items-center gap-2 transition-colors hover:bg-neutral-100 focus:outline-none">
                 <div className="flex items-center gap-2">
                   <img 
                     src="/placeholder_profilepic.png" 
@@ -62,7 +62,7 @@ export default function Navbar() {
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 animate-in fade-in-0 zoom-in-95 duration-200">
+            <DropdownMenuContent align="end" className="w-48 animate-in fade-in-0 zoom-in-95 duration-200 border-0 shadow-lg">
               <DropdownMenuItem className="hover:bg-blue-50 focus:bg-blue-50">
                 <Settings2 size={16} className="mr-2 text-[#1e40af]" />
                 Account Settings
@@ -75,7 +75,7 @@ export default function Navbar() {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          <Button variant="ghost" size="sm" className="p-2 transition-colors hover:bg-neutral-100 hover:text-[#1e40af]">
+          <Button variant="ghost" size="sm" className="p-2 transition-colors hover:bg-neutral-100 hover:text-[#1e40af] focus:outline-none">
             <Settings size={20} className="text-neutral-600 transition-colors" />
           </Button>
         </div>
