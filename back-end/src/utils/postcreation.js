@@ -52,7 +52,7 @@ export async function createPost(prompt) {
     return {
       imageUrl: publicUrl,
       originalPrompt: prompt,
-      enhancedPrompt: `Create a high-quality social media post image (1080x1080 square format) based on this prompt: ${prompt}. Make it visually appealing, professional, and suitable for social media sharing with vibrant colors and engaging composition.`
+      enhancedPrompt: `Create a high-quality social media post image (1080x1350 format) based on this prompt: ${prompt}. Make it visually appealing, professional, and suitable for social media sharing with vibrant colors and engaging composition.`
     };
   } catch (error) {
     const reason = error?.response?.data?.error?.message || error?.message || String(error);
