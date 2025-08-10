@@ -1,0 +1,22 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Typecheck front-end",
+			"type": "shell",
+			"command": "npm run -s build",
+			"args": [],
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build front-end",
+			"type": "shell",
+			"command": "npm run -s build",
+			"isBackground": false,
+			"group": "build"
+		}
+	]
+}
