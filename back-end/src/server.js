@@ -38,29 +38,38 @@ const corsOrigins = [
     'https://hackops-nu.vercel.app',
 ];
 
+const vercelPreview = /^https:\/\/hackops-nu-[a-z0-9-]+\.vercel\.app$/i;
+const isAllowedOrigin = (origin) => {
+    if (!origin) return true; // allow non-browser tools
+    if (corsOrigins.includes(origin)) return true;
+    if (vercelPreview.test(origin)) return true;
+    return false;
+};
+
 app.use((req, res, next) => { res.header('Vary', 'Origin'); next(); });
+// Lightweight preflight without wildcard routes (Express 5 friendly)
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (isAllowedOrigin(origin)) {
+        if (origin) res.header('Access-Control-Allow-Origin', origin);
+        res.header('Access-Control-Allow-Credentials', 'true');
+        res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Prefer, Range, apikey, x-client-info, x-requested-with');
+    }
+    if (req.method === 'OPTIONS') {
+        return isAllowedOrigin(origin) ? res.sendStatus(204) : res.sendStatus(403);
+    }
+    next();
+});
+
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin) return callback(null, true); // allow non-browser tools
-        if (corsOrigins.includes(origin)) return callback(null, true);
-        // Allow Vercel preview URLs for this project
-        const vercelPreview = /^https:\/\/hackops-nu-[a-z0-9-]+\.vercel\.app$/i;
-        if (vercelPreview.test(origin)) return callback(null, true);
+        if (isAllowedOrigin(origin)) return callback(null, true);
         return callback(new Error(`CORS: Origin not allowed: ${origin}`));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Prefer', 'Range', 'apikey', 'x-client-info', 'x-requested-with'],
-}));
-app.options('*', cors({
-    origin: (origin, callback) => {
-        if (!origin) return callback(null, true);
-        if (corsOrigins.includes(origin)) return callback(null, true);
-        const vercelPreview = /^https:\/\/hackops-nu-[a-z0-9-]+\.vercel\.app$/i;
-        if (vercelPreview.test(origin)) return callback(null, true);
-        return callback(new Error(`CORS: Origin not allowed: ${origin}`));
-    },
-    credentials: true,
 }));
 
 app.use(express.json());
